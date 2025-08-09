@@ -43,22 +43,34 @@
             <div class="curriculum-panel">
                 <h2>커리큘럼 선택</h2>
                 
-                <!-- 카테고리 선택 -->
-                <div class="category-selection">
-                    <h3>카테고리</h3>
-                    <div id="categoryButtons" class="category-buttons">
-                        <!-- 카테고리 버튼들이 동적으로 추가됩니다 -->
+                <!-- 카테고리 선택 및 검색 -->
+                <div class="curriculum-filters">
+                    <!-- 카테고리 필터 -->
+                    <div class="filter-section">
+                        <h4>카테고리 선택</h4>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-category="all">전체 보기 <span class="count" id="countAll">0</span></button>
+                            <button class="filter-btn" data-category="general_office">일반 사무 업무 <span class="count" id="countGeneral">0</span></button>
+                            <button class="filter-btn" data-category="marketing">마케팅 업무 <span class="count" id="countMarketing">0</span></button>
+                            <button class="filter-btn" data-category="design">디자인 업무 <span class="count" id="countDesign">0</span></button>
+                        </div>
+                    </div>
+                    
+                    <!-- 검색 기능 -->
+                    <div class="search-section">
+                        <h4>커리큘럼 검색</h4>
+                        <div class="search-container">
+                            <input type="text" id="searchInput" placeholder="제목이나 내용으로 검색..." />
+                            <button id="clearSearch" class="clear-btn">×</button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 선택된 카테고리의 커리큘럼 목록 -->
                 <div class="curriculum-section">
-                    <h3 id="selectedCategoryTitle">카테고리를 선택하세요</h3>
+                    <h3 id="selectedCategoryTitle">전체 커리큘럼</h3>
                     <div id="allCurriculums" class="curriculum-list">
-                        <div class="empty-message">
-                            <p>위에서 카테고리를 선택하면</p>
-                            <p>해당 분야의 커리큘럼이 표시됩니다.</p>
-                        </div>
+                        <!-- 커리큘럼 아이템들이 동적으로 추가됩니다 -->
                     </div>
                 </div>
             </div>
