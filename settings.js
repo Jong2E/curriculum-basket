@@ -129,8 +129,8 @@ function exportData() {
     }
     
     try {
-        // CSV 헤더
-        let csv = '고객사명,교육명,총 시간,날짜,담당자,커리큘럼 상세\\n';
+        // CSV 헤더 (Excel 호환성 개선)
+        let csv = '"고객사명","교육명","총 시간","날짜","담당자","커리큘럼 상세"\\n';
         
         // 데이터 행들
         savedData.forEach(data => {
@@ -145,11 +145,18 @@ function exportData() {
                 return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
             })();
             
-            csv += `"${data.companyName}","${data.courseName}","${totalTime}","${data.date}","${data.instructor}","${curriculumDetails}"\\n`;
+            // CSV에서 쌍따옴표 이스케이프 처리
+            const escapeCsv = (str) => String(str).replace(/"/g, '""');
+            
+            csv += `"${escapeCsv(data.companyName)}","${escapeCsv(data.courseName)}","${escapeCsv(totalTime)}","${escapeCsv(data.date)}","${escapeCsv(data.instructor)}","${escapeCsv(curriculumDetails)}"\\n`;
         });
         
+        // UTF-8 BOM 추가 (한글 깨짐 방지)
+        const BOM = '\uFEFF';
+        const csvWithBOM = BOM + csv;
+        
         // 파일 다운로드
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
