@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - 커리큘럼 관리</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>관리자 페이지</h1>
+            <p>커리큘럼을 추가, 수정, 삭제할 수 있습니다</p>
+            <nav>
+                <a href="index.html" class="nav-btn">장바구니 페이지로 이동</a>
+            </nav>
+        </header>
+
+        <!-- 커리큘럼 추가 폼 -->
+        <div class="admin-section">
+            <h2>새 커리큘럼 추가</h2>
+            <form id="addCurriculumForm" class="curriculum-form">
+                <div class="form-group">
+                    <label for="title">커리큘럼 제목:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">상세 내용:</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="duration">소요 시간 (시간):</label>
+                    <input type="number" id="duration" name="duration" min="1" max="24" required>
+                </div>
+                <button type="submit" class="submit-btn">커리큘럼 추가</button>
+            </form>
+        </div>
+
+        <!-- 기존 커리큘럼 관리 -->
+        <div class="admin-section">
+            <h2>기존 커리큘럼 관리</h2>
+            <div id="curriculumList" class="curriculum-management">
+                <!-- 커리큘럼 목록이 동적으로 표시됩니다 -->
+            </div>
+        </div>
+
+        <!-- 수정 모달 -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>커리큘럼 수정</h3>
+                <form id="editCurriculumForm" class="curriculum-form">
+                    <input type="hidden" id="editId" name="id">
+                    <div class="form-group">
+                        <label for="editTitle">커리큘럼 제목:</label>
+                        <input type="text" id="editTitle" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDescription">상세 내용:</label>
+                        <textarea id="editDescription" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDuration">소요 시간 (시간):</label>
+                        <input type="number" id="editDuration" name="duration" min="1" max="24" required>
+                    </div>
+                    <button type="submit" class="submit-btn">수정 완료</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 메시지 표시 영역 -->
+        <div id="messageArea"></div>
+    </div>
+
+    <script src="curriculum-data.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설정 - 커리큘럼 장바구니</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>설정</h1>
+            <p>구글 스프레드시트 연동 및 기타 설정을 관리합니다</p>
+            <nav>
+                <a href="index.html" class="nav-btn">메인 페이지</a>
+                <a href="admin.html" class="nav-btn admin-link">관리자 페이지</a>
+            </nav>
+        </header>
+
+        <!-- 구글 스프레드시트 설정 -->
+        <div class="admin-section">
+            <h2>구글 스프레드시트 연동 설정</h2>
+            <div class="settings-info">
+                <p><strong>주의:</strong> 이 설정은 관리자만 사용해야 합니다. API 키와 클라이언트 ID는 보안에 민감한 정보입니다.</p>
+                <p>구글 클라우드 콘솔에서 Sheets API를 활성화하고, API 키와 OAuth 2.0 클라이언트 ID를 생성해주세요.</p>
+            </div>
+            
+            <form id="googleSheetsConfigForm" class="curriculum-form">
+                <div class="form-group">
+                    <label for="apiKey">Google Sheets API 키:</label>
+                    <input type="text" id="apiKey" name="apiKey" placeholder="API 키를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="clientId">OAuth 2.0 클라이언트 ID:</label>
+                    <input type="text" id="clientId" name="clientId" placeholder="클라이언트 ID를 입력하세요">
+                </div>
+                <div class="form-group">
+                    <label for="spreadsheetId">스프레드시트 ID:</label>
+                    <input type="text" id="spreadsheetId" name="spreadsheetId" placeholder="스프레드시트 ID를 입력하세요">
+                    <small>스프레드시트 URL에서 /d/ 뒤의 긴 문자열입니다</small>
+                </div>
+                <button type="submit" class="submit-btn">설정 저장</button>
+            </form>
+        </div>
+
+        <!-- 저장된 데이터 관리 -->
+        <div class="admin-section">
+            <h2>저장된 데이터 관리</h2>
+            <p>로컬에 저장된 커리큘럼 구성 데이터를 확인하고 관리할 수 있습니다.</p>
+            
+            <div class="data-management">
+                <button id="viewDataBtn" class="submit-btn">저장된 데이터 보기</button>
+                <button id="exportDataBtn" class="submit-btn">데이터 내보내기</button>
+                <button id="clearDataBtn" class="submit-btn" style="background: #e74c3c;">모든 데이터 삭제</button>
+            </div>
+            
+            <div id="savedDataDisplay" class="saved-data-display" style="display: none;">
+                <h3>저장된 데이터</h3>
+                <div id="savedDataList"></div>
+            </div>
+        </div>
+
+        <!-- 스프레드시트 헤더 설정 안내 -->
+        <div class="admin-section">
+            <h2>스프레드시트 준비 방법</h2>
+            <div class="instructions">
+                <p>구글 스프레드시트의 첫 번째 행에 다음과 같은 헤더를 설정해주세요:</p>
+                <div class="header-example">
+                    <table>
+                        <tr>
+                            <th>A열: 고객사명</th>
+                            <th>B열: 교육명</th>
+                            <th>C열: 총 시간</th>
+                            <th>D열: 날짜</th>
+                            <th>E열: 담당자</th>
+                            <th>F열: 커리큘럼 상세</th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메시지 표시 영역 -->
+        <div id="messageArea"></div>
+    </div>
+
+    <script src="curriculum-data.js"></script>
+    <script src="google-sheets.js"></script>
+    <script src="settings.js"></script>
+</body>
+</html>

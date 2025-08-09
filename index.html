@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>커리큘럼 장바구니 - 교육과정 구성</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>커리큘럼 장바구니</h1>
+            <p>원하는 커리큘럼을 선택하여 나만의 교육과정을 구성하세요</p>
+            <nav>
+                <a href="admin.html" class="nav-btn admin-link">관리자 페이지</a>
+                <a href="settings.html" class="nav-btn">설정</a>
+            </nav>
+        </header>
+
+        <!-- 고객사 정보 입력 폼 -->
+        <div class="customer-info">
+            <h2>고객사 정보</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="companyName">고객사명:</label>
+                    <input type="text" id="companyName" placeholder="고객사명을 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <label for="instructorName">담당자:</label>
+                    <input type="text" id="instructorName" placeholder="담당자명을 입력하세요" required>
+                </div>
+                <div class="form-group">
+                    <label for="courseName">교육명:</label>
+                    <input type="text" id="courseName" placeholder="교육명을 입력하세요" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 전체 커리큘럼 목록 (왼쪽) -->
+            <div class="curriculum-panel">
+                <h2>전체 커리큘럼</h2>
+                <div id="allCurriculums" class="curriculum-list">
+                    <!-- 커리큘럼 아이템들이 동적으로 추가됩니다 -->
+                </div>
+            </div>
+
+            <!-- 선택된 커리큘럼 목록 (오른쪽, 장바구니) -->
+            <div class="curriculum-panel">
+                <h2>선택된 커리큘럼 <span id="totalTime">(총 시간: 0시간)</span></h2>
+                <div id="selectedCurriculums" class="curriculum-list selected-list">
+                    <div class="empty-message">
+                        <p>선택된 커리큘럼이 없습니다.</p>
+                        <p>왼쪽에서 커리큘럼을 클릭하여 추가하세요.</p>
+                    </div>
+                </div>
+                <button id="completeBtn" class="complete-btn" disabled>완성하기</button>
+            </div>
+        </div>
+
+        <!-- 메시지 표시 영역 -->
+        <div id="messageArea"></div>
+    </div>
+
+    <script src="curriculum-data.js"></script>
+    <script src="google-sheets.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
