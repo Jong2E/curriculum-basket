@@ -249,6 +249,45 @@
     }
 }
 
+/* 카테고리 헤더 스타일 */
+.category-header {
+    background: linear-gradient(135deg, #f8fbff 0%, #e3f2fd 100%);
+    padding: 15px 20px;
+    margin: 20px 0 10px 0;
+    border-radius: 10px;
+    border-left: 4px solid #04abba;
+}
+
+.category-header h3 {
+    color: #04abba;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* Select 박스 스타일 */
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    color: #2c3e50;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.form-group select:focus {
+    border-color: #04abba;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(4, 171, 186, 0.1);
+}
+
+.form-group select:hover {
+    border-color: #20d0e4;
+}
+
 .message.success {
     background: #d4edda;
     color: #155724;

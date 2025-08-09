@@ -19,7 +19,7 @@ function setupEventListeners() {
     });
 }
 
-// 커리큘럼 목록 표시
+// 커리큘럼 목록 표시 (카테고리별로 정리)
 function displayCurriculumList() {
     const listContainer = document.getElementById('curriculumList');
     listContainer.innerHTML = '';
@@ -29,9 +29,22 @@ function displayCurriculumList() {
         return;
     }
     
-    curriculumData.forEach(curriculum => {
-        const curriculumElement = createCurriculumElement(curriculum);
-        listContainer.appendChild(curriculumElement);
+    // 카테고리별로 커리큘럼을 그룹화하여 표시
+    Object.keys(curriculumCategories).forEach(categoryKey => {
+        const category = curriculumCategories[categoryKey];
+        if (category.curriculums.length > 0) {
+            // 카테고리 헤더 생성
+            const categoryHeader = document.createElement('div');
+            categoryHeader.className = 'category-header';
+            categoryHeader.innerHTML = `<h3>${category.name} (${category.curriculums.length}개)</h3>`;
+            listContainer.appendChild(categoryHeader);
+            
+            // 해당 카테고리의 커리큘럼들 표시
+            category.curriculums.forEach(curriculum => {
+                const curriculumElement = createCurriculumElement(curriculum);
+                listContainer.appendChild(curriculumElement);
+            });
+        }
     });
 }
 
@@ -58,6 +71,7 @@ function handleAddCurriculum(event) {
     event.preventDefault();
     
     const formData = new FormData(event.target);
+    const category = formData.get('category');
     const title = formData.get('title').trim();
     const description = formData.get('description').trim();
     const duration = formData.get('duration');
@@ -67,8 +81,15 @@ function handleAddCurriculum(event) {
         return;
     }
     
+    // 시간 유효성 검사
+    const durationNum = parseInt(duration);
+    if (isNaN(durationNum) || durationNum < 1 || durationNum > 600) {
+        showMessage('소요 시간은 1분 이상 600분 이하로 입력해주세요.', 'error');
+        return;
+    }
+    
     try {
-        addCurriculum(title, description, duration);
+        addCurriculum(category, title, description, duration);
         displayCurriculumList();
         event.target.reset();
         showMessage('커리큘럼이 성공적으로 추가되었습니다.', 'success');
@@ -106,6 +127,13 @@ function handleEditCurriculum(event) {
     
     if (!title || !description || !duration) {
         showMessage('모든 필드를 입력해주세요.', 'error');
+        return;
+    }
+    
+    // 시간 유효성 검사
+    const durationNum = parseInt(duration);
+    if (isNaN(durationNum) || durationNum < 1 || durationNum > 600) {
+        showMessage('소요 시간은 1분 이상 600분 이하로 입력해주세요.', 'error');
         return;
     }
     
