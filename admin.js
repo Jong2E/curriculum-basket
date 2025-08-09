@@ -42,11 +42,7 @@ function createCurriculumElement(curriculum) {
     div.innerHTML = `
         <div class="curriculum-details">
             <h3>${curriculum.title}</h3>
-            <div class="duration">${(() => {
-                const hours = Math.floor(curriculum.duration / 60);
-                const minutes = curriculum.duration % 60;
-                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
-            })()}</div>
+            <div class="duration">${curriculum.duration}분</div>
             <div class="description">${curriculum.description}</div>
         </div>
         <div class="curriculum-actions">

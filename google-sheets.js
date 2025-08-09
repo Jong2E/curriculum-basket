@@ -75,12 +75,9 @@ async function sendToGoogleSheets() {
         const currentDate = new Date().toLocaleDateString('ko-KR');
         
         // 커리큘럼 상세 내용을 문자열로 변환
-        const curriculumDetails = selectedCurriculums.map((curriculum, index) => {
-            const hours = Math.floor(curriculum.duration / 60);
-            const minutes = curriculum.duration % 60;
-            const timeText = hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
-            return `${index + 1}. ${curriculum.title} (${timeText}) - ${curriculum.description}`;
-        }).join('\\n');
+        const curriculumDetails = selectedCurriculums.map((curriculum, index) => 
+            `${index + 1}. ${curriculum.title} (${curriculum.duration}분) - ${curriculum.description}`
+        ).join('\\n');
         
         // 스프레드시트에 추가할 행 데이터
         const values = [
