@@ -408,3 +408,110 @@ nav {
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
+
+/* 카테고리 선택 스타일 */
+.category-selection {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(4, 171, 186, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(4, 171, 186, 0.1);
+}
+
+.category-selection h3 {
+    margin-bottom: 15px;
+    color: #04abba;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.category-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.category-btn {
+    padding: 12px 20px;
+    border: 2px solid #e1f5fe;
+    background: white;
+    color: #0277bd;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.95rem;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
+}
+
+.category-btn:hover {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    border-color: #04abba;
+    color: #01579b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(4, 171, 186, 0.2);
+}
+
+.category-btn:hover::before {
+    left: 100%;
+}
+
+.category-btn.active {
+    background: linear-gradient(135deg, #04abba 0%, #0394a1 100%);
+    border-color: #04abba;
+    color: white;
+    box-shadow: 0 5px 20px rgba(4, 171, 186, 0.3);
+}
+
+.category-btn .count {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.category-btn.active .count {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.curriculum-section {
+    margin-top: 20px;
+}
+
+.curriculum-section h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding-left: 10px;
+    border-left: 4px solid #04abba;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .category-buttons {
+        flex-direction: column;
+    }
+    
+    .category-btn {
+        min-width: 100%;
+        text-align: center;
+    }
+}

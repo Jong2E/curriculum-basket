@@ -1,10 +1,11 @@
 // 메인 애플리케이션 JavaScript
 let selectedCurriculums = [];
 let totalHours = 0;
+let currentCategory = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     loadCurriculumData();
-    displayAllCurriculums();
+    displayCategoryButtons();
     setupEventListeners();
     updateTotalTime();
 });
@@ -20,18 +21,61 @@ function setupEventListeners() {
     selectedList.addEventListener('drop', handleDrop);
 }
 
-// 전체 커리큘럼 목록 표시
-function displayAllCurriculums() {
+// 카테고리 버튼들 표시
+function displayCategoryButtons() {
+    const container = document.getElementById('categoryButtons');
+    const categories = getCategoryList();
+    
+    container.innerHTML = '';
+    
+    categories.forEach(category => {
+        const button = document.createElement('button');
+        button.className = 'category-btn';
+        button.dataset.categoryKey = category.key;
+        button.innerHTML = `
+            ${category.name}
+            <span class="count">${category.count}</span>
+        `;
+        
+        button.addEventListener('click', () => selectCategory(category.key));
+        container.appendChild(button);
+    });
+}
+
+// 카테고리 선택
+function selectCategory(categoryKey) {
+    currentCategory = categoryKey;
+    
+    // 모든 카테고리 버튼에서 active 클래스 제거
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 선택된 버튼에 active 클래스 추가
+    document.querySelector(`[data-category-key="${categoryKey}"]`).classList.add('active');
+    
+    // 선택된 카테고리의 커리큘럼 표시
+    displayCurriculumsByCategory(categoryKey);
+}
+
+// 카테고리별 커리큘럼 표시
+function displayCurriculumsByCategory(categoryKey) {
     const container = document.getElementById('allCurriculums');
+    const titleElement = document.getElementById('selectedCategoryTitle');
+    const category = curriculumCategories[categoryKey];
+    
+    if (!category) return;
+    
+    titleElement.textContent = `${category.name} (${category.curriculums.length}개)`;
     container.innerHTML = '';
     
     // 선택되지 않은 커리큘럼만 표시
-    const availableCurriculums = curriculumData.filter(curriculum => 
+    const availableCurriculums = category.curriculums.filter(curriculum => 
         !selectedCurriculums.find(selected => selected.id === curriculum.id)
     );
     
     if (availableCurriculums.length === 0) {
-        container.innerHTML = '<div class="empty-message"><p>모든 커리큘럼이 선택되었습니다.</p></div>';
+        container.innerHTML = '<div class="empty-message"><p>이 카테고리의 모든 커리큘럼이 선택되었습니다.</p></div>';
         return;
     }
     
@@ -39,6 +83,13 @@ function displayAllCurriculums() {
         const curriculumElement = createCurriculumElement(curriculum, false);
         container.appendChild(curriculumElement);
     });
+}
+
+// 전체 커리큘럼 목록 표시 (기존 호환성을 위해 유지, 현재는 카테고리별 표시 사용)
+function displayAllCurriculums() {
+    if (currentCategory) {
+        displayCurriculumsByCategory(currentCategory);
+    }
 }
 
 // 선택된 커리큘럼 목록 표시
@@ -94,6 +145,7 @@ function addCurriculum(curriculum) {
     selectedCurriculums.push(curriculum);
     displayAllCurriculums();
     displaySelectedCurriculums();
+    updateCategoryButtons();
     updateTotalTime();
     updateCompleteButton();
     showMessage(`"${curriculum.title}" 커리큘럼이 추가되었습니다.`, 'success');
@@ -105,11 +157,34 @@ function removeCurriculum(id) {
     selectedCurriculums = selectedCurriculums.filter(item => item.id !== id);
     displayAllCurriculums();
     displaySelectedCurriculums();
+    updateCategoryButtons();
     updateTotalTime();
     updateCompleteButton();
     if (curriculum) {
         showMessage(`"${curriculum.title}" 커리큘럼이 제거되었습니다.`, 'success');
     }
+}
+
+// 카테고리 버튼들의 카운트 업데이트
+function updateCategoryButtons() {
+    const categories = getCategoryList();
+    
+    categories.forEach(category => {
+        const availableCount = category.count - selectedCurriculums.filter(selected => {
+            const categoryKey = Object.keys(curriculumCategories).find(key => 
+                curriculumCategories[key].curriculums.some(curr => curr.id === selected.id)
+            );
+            return categoryKey === category.key;
+        }).length;
+        
+        const button = document.querySelector(`[data-category-key="${category.key}"]`);
+        if (button) {
+            const countSpan = button.querySelector('.count');
+            if (countSpan) {
+                countSpan.textContent = availableCount;
+            }
+        }
+    });
 }
 
 // 총 시간 업데이트
