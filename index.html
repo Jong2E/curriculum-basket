@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>커리큘럼 장바구니 - 교육과정 구성</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
@@ -15,7 +18,6 @@
             <p>원하는 커리큘럼을 선택하여 나만의 교육과정을 구성하세요</p>
             <nav>
                 <a href="admin.html" class="nav-btn admin-link">관리자 페이지</a>
-                <a href="settings.html" class="nav-btn">설정</a>
             </nav>
         </header>
 
@@ -49,7 +51,7 @@
 
             <!-- 선택된 커리큘럼 목록 (오른쪽, 장바구니) -->
             <div class="curriculum-panel">
-                <h2>선택된 커리큘럼 <span id="totalTime">(총 시간: 0시간)</span></h2>
+                <h2>선택된 커리큘럼 <span id="totalTime">(총 시간: 0분)</span></h2>
                 <div id="selectedCurriculums" class="curriculum-list selected-list">
                     <div class="empty-message">
                         <p>선택된 커리큘럼이 없습니다.</p>

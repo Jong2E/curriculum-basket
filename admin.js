@@ -1,9 +1,5 @@
 // 관리자 페이지 JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    loadCurriculumData();
-    displayCurriculumList();
-    setupEventListeners();
-});
+// DOMContentLoaded는 admin-auth.js에서 처리하므로 제거
 
 // 이벤트 리스너 설정
 function setupEventListeners() {
@@ -46,7 +42,7 @@ function createCurriculumElement(curriculum) {
     div.innerHTML = `
         <div class="curriculum-details">
             <h3>${curriculum.title}</h3>
-            <div class="duration">${curriculum.duration}시간</div>
+            <div class="duration">${curriculum.duration}분</div>
             <div class="description">${curriculum.description}</div>
         </div>
         <div class="curriculum-actions">

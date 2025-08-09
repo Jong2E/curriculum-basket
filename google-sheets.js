@@ -76,7 +76,7 @@ async function sendToGoogleSheets() {
         
         // 커리큘럼 상세 내용을 문자열로 변환
         const curriculumDetails = selectedCurriculums.map((curriculum, index) => 
-            `${index + 1}. ${curriculum.title} (${curriculum.duration}시간) - ${curriculum.description}`
+            `${index + 1}. ${curriculum.title} (${curriculum.duration}분) - ${curriculum.description}`
         ).join('\\n');
         
         // 스프레드시트에 추가할 행 데이터
@@ -84,7 +84,11 @@ async function sendToGoogleSheets() {
             [
                 companyName,
                 courseName,
-                totalHours + '시간',
+                (() => {
+                    const hours = Math.floor(totalHours / 60);
+                    const minutes = totalHours % 60;
+                    return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+                })(),
                 currentDate,
                 instructorName,
                 curriculumDetails

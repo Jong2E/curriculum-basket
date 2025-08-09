@@ -1,8 +1,5 @@
 // 설정 페이지 JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    loadCurrentSettings();
-    setupEventListeners();
-});
+// DOMContentLoaded는 admin-auth.js에서 처리하므로 제거 (관리자 인증 필요)
 
 // 이벤트 리스너 설정
 function setupEventListeners() {
@@ -98,14 +95,19 @@ function createSavedDataElement(data, index) {
     div.className = 'saved-data-item';
     
     const curriculumList = data.curriculums.map((curriculum, i) => 
-        `${i + 1}. ${curriculum.title} (${curriculum.duration}시간)`
+        `${i + 1}. ${curriculum.title} (${curriculum.duration}분)`
     ).join('\\n');
     
     div.innerHTML = `
         <h4>${data.companyName} - ${data.courseName}</h4>
         <div class="meta">
             <strong>담당자:</strong> ${data.instructor} | 
-            <strong>총 시간:</strong> ${data.totalHours}시간 | 
+            <strong>총 시간:</strong> ${data.totalTime || (() => {
+                const totalMinutes = data.totalMinutes || data.totalHours || 0;
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+            })()} | 
             <strong>날짜:</strong> ${data.date}
         </div>
         <div class="curriculums">
@@ -133,10 +135,17 @@ function exportData() {
         // 데이터 행들
         savedData.forEach(data => {
             const curriculumDetails = data.curriculums.map(curriculum => 
-                `${curriculum.title} (${curriculum.duration}시간) - ${curriculum.description}`
+                `${curriculum.title} (${curriculum.duration}분) - ${curriculum.description}`
             ).join(' | ');
             
-            csv += `"${data.companyName}","${data.courseName}","${data.totalHours}시간","${data.date}","${data.instructor}","${curriculumDetails}"\\n`;
+            const totalTime = data.totalTime || (() => {
+                const totalMinutes = data.totalMinutes || data.totalHours || 0;
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+            })();
+            
+            csv += `"${data.companyName}","${data.courseName}","${totalTime}","${data.date}","${data.instructor}","${curriculumDetails}"\\n`;
         });
         
         // 파일 다운로드

@@ -77,7 +77,7 @@ function createCurriculumElement(curriculum, isSelected, index) {
     
     div.innerHTML = `
         <h3>${curriculum.title}</h3>
-        <div class="duration">${curriculum.duration}시간</div>
+        <div class="duration">${curriculum.duration}분</div>
         <div class="description">${curriculum.description}</div>
         ${isSelected ? '<button class="remove-btn" onclick="removeCurriculum(' + curriculum.id + ')">&times;</button>' : ''}
     `;
@@ -115,7 +115,10 @@ function removeCurriculum(id) {
 // 총 시간 업데이트
 function updateTotalTime() {
     totalHours = selectedCurriculums.reduce((sum, curriculum) => sum + curriculum.duration, 0);
-    document.getElementById('totalTime').textContent = `(총 시간: ${totalHours}시간)`;
+    const hours = Math.floor(totalHours / 60);
+    const minutes = totalHours % 60;
+    const timeText = hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+    document.getElementById('totalTime').textContent = `(총 시간: ${timeText})`;
 }
 
 // 완성하기 버튼 상태 업데이트
@@ -186,7 +189,12 @@ async function handleComplete() {
         const data = {
             companyName,
             courseName,
-            totalHours,
+            totalMinutes: totalHours,
+            totalTime: (() => {
+                const hours = Math.floor(totalHours / 60);
+                const minutes = totalHours % 60;
+                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+            })(),
             date: new Date().toLocaleDateString('ko-KR'),
             instructor: instructorName,
             curriculums: selectedCurriculums,
