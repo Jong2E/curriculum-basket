@@ -6,9 +6,9 @@ let searchQuery = '';
 
 document.addEventListener('DOMContentLoaded', function() {
     loadCurriculumData();
-    displayFilterButtons();
     setupEventListeners();
     updateTotalTime();
+    // 초기 상태에서 전체 커리큘럼을 표시
     displayFilteredCurriculums();
 });
 
@@ -94,6 +94,12 @@ function displayFilteredCurriculums() {
     container.innerHTML = '';
     updateFilterCounts();
     
+    // 커리큘럼 데이터가 아직 로드되지 않았다면 대기
+    if (!curriculumCategories || Object.keys(curriculumCategories).length === 0) {
+        container.innerHTML = '<div class="empty-message"><p>커리큘럼을 불러오는 중...</p></div>';
+        return;
+    }
+    
     let hasVisibleContent = false;
     let totalFilteredCount = 0;
     
@@ -102,7 +108,7 @@ function displayFilteredCurriculums() {
         const category = curriculumCategories[categoryKey];
         
         // 현재 필터와 검색 조건에 맞는 커리큘럼들 필터링
-        let filteredCurriculums = category.curriculums;
+        let filteredCurriculums = category.curriculums || [];
         
         // 카테고리 필터 적용
         if (currentCategory !== 'all' && currentCategory !== categoryKey) {
@@ -167,6 +173,15 @@ function displayFilteredCurriculums() {
 
 // 필터 카운트 업데이트
 function updateFilterCounts() {
+    // 커리큘럼 데이터가 아직 로드되지 않았다면 0으로 설정
+    if (!curriculumData || curriculumData.length === 0) {
+        document.getElementById('countAll').textContent = '0';
+        document.getElementById('countGeneral').textContent = '0';
+        document.getElementById('countMarketing').textContent = '0';
+        document.getElementById('countDesign').textContent = '0';
+        return;
+    }
+    
     // 전체 사용 가능한 커리큘럼 수
     const totalAvailable = curriculumData.filter(curriculum => 
         !selectedCurriculums.find(selected => selected.id === curriculum.id)
@@ -174,18 +189,20 @@ function updateFilterCounts() {
     document.getElementById('countAll').textContent = totalAvailable;
     
     // 각 카테고리별 사용 가능한 커리큘럼 수
-    Object.keys(curriculumCategories).forEach(categoryKey => {
-        const category = curriculumCategories[categoryKey];
-        const availableCount = category.curriculums.filter(curriculum =>
-            !selectedCurriculums.find(selected => selected.id === curriculum.id)
-        ).length;
-        
-        const countElement = document.getElementById(`count${categoryKey === 'general_office' ? 'General' : 
-                                                            categoryKey === 'marketing' ? 'Marketing' : 'Design'}`);
-        if (countElement) {
-            countElement.textContent = availableCount;
-        }
-    });
+    if (curriculumCategories && Object.keys(curriculumCategories).length > 0) {
+        Object.keys(curriculumCategories).forEach(categoryKey => {
+            const category = curriculumCategories[categoryKey];
+            const availableCount = (category.curriculums || []).filter(curriculum =>
+                !selectedCurriculums.find(selected => selected.id === curriculum.id)
+            ).length;
+            
+            const countElement = document.getElementById(`count${categoryKey === 'general_office' ? 'General' : 
+                                                                categoryKey === 'marketing' ? 'Marketing' : 'Design'}`);
+            if (countElement) {
+                countElement.textContent = availableCount;
+            }
+        });
+    }
 }
 
 // 전체 커리큘럼 목록 표시 (기존 호환성을 위해 유지)

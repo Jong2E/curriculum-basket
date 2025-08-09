@@ -506,15 +506,35 @@ nav {
 
 /* 커리큘럼 필터링 섹션 (메인 페이지용) */
 .curriculum-filters {
-    background: rgba(4, 171, 186, 0.03);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 25px;
-    border: 1px solid rgba(4, 171, 186, 0.1);
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(4, 171, 186, 0.15);
+    box-shadow: 0 4px 20px rgba(4, 171, 186, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.curriculum-filters::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #04abba, #20d0e4, #04abba);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 .filter-section, .search-section {
-    margin-bottom: 20px;
+    margin-bottom: 25px;
 }
 
 .filter-section:last-child, .search-section:last-child {
@@ -523,33 +543,42 @@ nav {
 
 .curriculum-filters h4 {
     color: #04abba;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.curriculum-filters h4::before {
+    content: '🔍';
     font-size: 1.1rem;
-    font-weight: 600;
 }
 
 /* 필터 버튼들 (메인 페이지용) */
 .filter-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
 }
 
 .filter-btn {
-    background: white;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
     border: 2px solid #e1f5fe;
     color: #0277bd;
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 14px 20px;
+    border-radius: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    font-size: 0.9rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    font-weight: 600;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: space-between;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 10px rgba(4, 171, 186, 0.08);
 }
 
 .filter-btn::before {
@@ -559,16 +588,16 @@ nav {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.8), transparent);
+    transition: left 0.6s ease;
 }
 
 .filter-btn:hover {
     background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
-    border-color: #04abba;
+    border-color: #20d0e4;
     color: #01579b;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(4, 171, 186, 0.2);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(4, 171, 186, 0.25);
 }
 
 .filter-btn:hover::before {
@@ -576,76 +605,120 @@ nav {
 }
 
 .filter-btn.active {
-    background: linear-gradient(135deg, #04abba 0%, #0394a1 100%);
+    background: linear-gradient(135deg, #04abba 0%, #20d0e4 50%, #0394a1 100%);
     border-color: #04abba;
     color: white;
-    box-shadow: 0 5px 20px rgba(4, 171, 186, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(4, 171, 186, 0.4);
+}
+
+.filter-btn.active::after {
+    content: '✨';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 0.8rem;
+    opacity: 0.8;
 }
 
 .filter-btn .count {
-    background: rgba(0, 0, 0, 0.1);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    min-width: 20px;
+    background: rgba(4, 171, 186, 0.15);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 28px;
     text-align: center;
+    border: 1px solid rgba(4, 171, 186, 0.2);
 }
 
 .filter-btn.active .count {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.filter-btn .btn-icon {
+    margin-right: 8px;
+    font-size: 1.1rem;
 }
 
 /* 검색 섹션 (메인 페이지용) */
 .search-container {
     position: relative;
-    max-width: 400px;
+    max-width: 100%;
+}
+
+.curriculum-filters h4:nth-of-type(2)::before {
+    content: '📚';
 }
 
 #searchInput {
     width: 100%;
-    padding: 12px 40px 12px 15px;
+    padding: 16px 50px 16px 20px;
     border: 2px solid #e1f5fe;
-    border-radius: 25px;
+    border-radius: 20px;
     font-size: 1rem;
-    background: white;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
     color: #2c3e50;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
+    box-shadow: 0 2px 10px rgba(4, 171, 186, 0.05);
+    font-weight: 500;
+}
+
+#searchInput::placeholder {
+    color: #94a3b8;
+    font-style: italic;
 }
 
 #searchInput:focus {
     border-color: #04abba;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(4, 171, 186, 0.1);
+    box-shadow: 0 0 0 4px rgba(4, 171, 186, 0.15), 0 4px 20px rgba(4, 171, 186, 0.1);
+    transform: translateY(-1px);
+    background: white;
 }
 
 #searchInput:hover {
     border-color: #20d0e4;
+    box-shadow: 0 4px 15px rgba(4, 171, 186, 0.1);
+}
+
+.search-container::before {
+    content: '🔍';
+    position: absolute;
+    right: 50px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    pointer-events: none;
+    opacity: 0.6;
 }
 
 .clear-btn {
     position: absolute;
-    right: 5px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    background: #dc3545;
+    background: linear-gradient(135deg, #ff4757, #ff3838);
     color: white;
     border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     display: none;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
 }
 
 .clear-btn:hover {
-    background: #c82333;
+    background: linear-gradient(135deg, #ff3838, #ff2f2f);
     transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
 }
 
 .clear-btn.show {
