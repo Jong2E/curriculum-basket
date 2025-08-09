@@ -53,6 +53,28 @@
         <!-- 기존 커리큘럼 관리 -->
         <div class="admin-section">
             <h2>기존 커리큘럼 관리</h2>
+            
+            <!-- 필터링 및 검색 도구 -->
+            <div class="curriculum-filters">
+                <div class="filter-section">
+                    <h4>카테고리 필터</h4>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-category="all">전체 보기 <span class="count" id="countAll">0</span></button>
+                        <button class="filter-btn" data-category="general_office">일반 사무 업무 <span class="count" id="countGeneral">0</span></button>
+                        <button class="filter-btn" data-category="marketing">마케팅 업무 <span class="count" id="countMarketing">0</span></button>
+                        <button class="filter-btn" data-category="design">디자인 업무 <span class="count" id="countDesign">0</span></button>
+                    </div>
+                </div>
+                
+                <div class="search-section">
+                    <h4>검색</h4>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="커리큘럼 제목이나 내용으로 검색..." />
+                        <button id="clearSearch" class="clear-btn">×</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="curriculumList" class="curriculum-management">
                 <!-- 커리큘럼 목록이 동적으로 표시됩니다 -->
             </div>

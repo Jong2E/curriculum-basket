@@ -1,6 +1,10 @@
 // 관리자 페이지 JavaScript
 // DOMContentLoaded는 admin-auth.js에서 처리하므로 제거
 
+// 필터링 상태
+let currentFilter = 'all';
+let searchQuery = '';
+
 // 이벤트 리스너 설정
 function setupEventListeners() {
     // 새 커리큘럼 추가 폼
@@ -17,35 +21,81 @@ function setupEventListeners() {
             closeModal();
         }
     });
+    
+    // 필터 버튼들
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', handleFilterChange);
+    });
+    
+    // 검색 기능
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearch');
+    
+    searchInput.addEventListener('input', handleSearch);
+    clearBtn.addEventListener('click', clearSearch);
 }
 
-// 커리큘럼 목록 표시 (카테고리별로 정리)
+// 커리큘럼 목록 표시 (필터링 및 검색 적용)
 function displayCurriculumList() {
     const listContainer = document.getElementById('curriculumList');
     listContainer.innerHTML = '';
+    
+    updateFilterCounts();
     
     if (curriculumData.length === 0) {
         listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">등록된 커리큘럼이 없습니다.</p>';
         return;
     }
     
+    let hasVisibleContent = false;
+    
     // 카테고리별로 커리큘럼을 그룹화하여 표시
     Object.keys(curriculumCategories).forEach(categoryKey => {
         const category = curriculumCategories[categoryKey];
-        if (category.curriculums.length > 0) {
-            // 카테고리 헤더 생성
-            const categoryHeader = document.createElement('div');
-            categoryHeader.className = 'category-header';
-            categoryHeader.innerHTML = `<h3>${category.name} (${category.curriculums.length}개)</h3>`;
-            listContainer.appendChild(categoryHeader);
+        
+        // 현재 필터와 검색 조건에 맞는 커리큘럼들 필터링
+        let filteredCurriculums = category.curriculums;
+        
+        // 카테고리 필터 적용
+        if (currentFilter !== 'all' && currentFilter !== categoryKey) {
+            return; // 이 카테고리는 건너뜀
+        }
+        
+        // 검색 필터 적용
+        if (searchQuery) {
+            filteredCurriculums = filteredCurriculums.filter(curriculum =>
+                curriculum.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                curriculum.description.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        
+        if (filteredCurriculums.length > 0) {
+            hasVisibleContent = true;
+            
+            // 카테고리 헤더 생성 (전체 보기일 때만)
+            if (currentFilter === 'all') {
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'category-header';
+                categoryHeader.innerHTML = `<h3>${category.name} (${filteredCurriculums.length}개)</h3>`;
+                listContainer.appendChild(categoryHeader);
+            }
             
             // 해당 카테고리의 커리큘럼들 표시
-            category.curriculums.forEach(curriculum => {
+            filteredCurriculums.forEach(curriculum => {
                 const curriculumElement = createCurriculumElement(curriculum);
                 listContainer.appendChild(curriculumElement);
             });
         }
     });
+    
+    // 검색 결과가 없을 때
+    if (!hasVisibleContent) {
+        if (searchQuery) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">검색 결과가 없습니다.</p>';
+        } else {
+            listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">선택한 카테고리에 커리큘럼이 없습니다.</p>';
+        }
+    }
 }
 
 // 커리큘럼 요소 생성
@@ -179,6 +229,68 @@ function deleteCurriculumItem(id) {
 // 모달 닫기
 function closeModal() {
     document.getElementById('editModal').style.display = 'none';
+}
+
+// 필터 변경 처리
+function handleFilterChange(event) {
+    const category = event.target.dataset.category;
+    currentFilter = category;
+    
+    // 모든 필터 버튼에서 active 클래스 제거
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // 선택된 버튼에 active 클래스 추가
+    event.target.classList.add('active');
+    
+    // 목록 다시 표시
+    displayCurriculumList();
+}
+
+// 검색 처리
+function handleSearch(event) {
+    searchQuery = event.target.value.trim();
+    const clearBtn = document.getElementById('clearSearch');
+    
+    // 검색어가 있으면 클리어 버튼 표시
+    if (searchQuery) {
+        clearBtn.classList.add('show');
+    } else {
+        clearBtn.classList.remove('show');
+    }
+    
+    // 목록 다시 표시
+    displayCurriculumList();
+}
+
+// 검색 클리어
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearch');
+    
+    searchInput.value = '';
+    searchQuery = '';
+    clearBtn.classList.remove('show');
+    
+    // 목록 다시 표시
+    displayCurriculumList();
+}
+
+// 필터 카운트 업데이트
+function updateFilterCounts() {
+    const totalCount = curriculumData.length;
+    document.getElementById('countAll').textContent = totalCount;
+    
+    // 각 카테고리별 카운트
+    Object.keys(curriculumCategories).forEach(categoryKey => {
+        const category = curriculumCategories[categoryKey];
+        const countElement = document.getElementById(`count${categoryKey === 'general_office' ? 'General' : 
+                                                            categoryKey === 'marketing' ? 'Marketing' : 'Design'}`);
+        if (countElement) {
+            countElement.textContent = category.curriculums.length;
+        }
+    });
 }
 
 // 메시지 표시
