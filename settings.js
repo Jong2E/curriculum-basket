@@ -94,9 +94,12 @@ function createSavedDataElement(data, index) {
     const div = document.createElement('div');
     div.className = 'saved-data-item';
     
-    const curriculumList = data.curriculums.map((curriculum, i) => 
-        `${i + 1}. ${curriculum.title} (${curriculum.duration}분)`
-    ).join('\\n');
+    const curriculumList = data.curriculums.map((curriculum, i) => {
+        const hours = Math.floor(curriculum.duration / 60);
+        const minutes = curriculum.duration % 60;
+        const timeText = hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+        return `${i + 1}. ${curriculum.title} (${timeText})`;
+    }).join('\\n');
     
     div.innerHTML = `
         <h4>${data.companyName} - ${data.courseName}</h4>
@@ -134,9 +137,12 @@ function exportData() {
         
         // 데이터 행들
         savedData.forEach(data => {
-            const curriculumDetails = data.curriculums.map(curriculum => 
-                `${curriculum.title} (${curriculum.duration}분) - ${curriculum.description}`
-            ).join(' | ');
+            const curriculumDetails = data.curriculums.map(curriculum => {
+                const hours = Math.floor(curriculum.duration / 60);
+                const minutes = curriculum.duration % 60;
+                const timeText = hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+                return `${curriculum.title} (${timeText}) - ${curriculum.description}`;
+            }).join(' | ');
             
             const totalTime = data.totalTime || (() => {
                 const totalMinutes = data.totalMinutes || data.totalHours || 0;
