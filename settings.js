@@ -129,14 +129,11 @@ function exportData() {
     }
     
     try {
-        // CSV 헤더 (Excel 호환성 개선)
-        let csv = '"고객사명","교육명","총 시간","날짜","담당자","커리큘럼 상세"\\n';
+        let csv = '';
         
-        // 데이터 행들
-        savedData.forEach(data => {
-            const curriculumDetails = data.curriculums.map(curriculum => 
-                `${curriculum.title} (${curriculum.duration}분) - ${curriculum.description}`
-            ).join(' | ');
+        // 각 저장된 데이터별로 커리큘럼 표 생성
+        savedData.forEach((data, index) => {
+            if (index > 0) csv += '\\n\\n'; // 데이터 간 구분
             
             const totalTime = data.totalTime || (() => {
                 const totalMinutes = data.totalMinutes || data.totalHours || 0;
@@ -145,10 +142,36 @@ function exportData() {
                 return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
             })();
             
-            // CSV에서 쌍따옴표 이스케이프 처리
-            const escapeCsv = (str) => String(str).replace(/"/g, '""');
+            // 헤더 정보
+            csv += `"■ ${data.companyName} 교육 커리큘럼(${totalTime}) - ${data.courseName}","","","음영 표기는 실습 진행 항목입니다."\\n`;
+            csv += `"","","","* 본 커리큘럼은 일부 변동 될 수 있습니다."\\n`;
+            csv += `"","","",""\\n`; // 빈 줄
+            csv += `"번호","강의 제목","상세 내용","시간"\\n`; // 테이블 헤더
             
-            csv += `"${escapeCsv(data.companyName)}","${escapeCsv(data.courseName)}","${escapeCsv(totalTime)}","${escapeCsv(data.date)}","${escapeCsv(data.instructor)}","${escapeCsv(curriculumDetails)}"\\n`;
+            // 커리큘럼 데이터 행들
+            data.curriculums.forEach((curriculum, currIndex) => {
+                const hours = Math.floor(curriculum.duration / 60);
+                const minutes = curriculum.duration % 60;
+                let timeText;
+                
+                if (hours > 0 && minutes > 0) {
+                    timeText = `${hours}h ${minutes}m`;
+                } else if (hours > 0) {
+                    timeText = `${hours}h`;
+                } else {
+                    timeText = `${minutes}m`;
+                }
+                
+                // CSV에서 쌍따옴표 이스케이프 처리
+                const escapeCsv = (str) => String(str || '').replace(/"/g, '""');
+                
+                csv += `"${currIndex + 1}","${escapeCsv(curriculum.title)}","${escapeCsv(curriculum.description)}","${timeText}"\\n`;
+            });
+            
+            // 하단 정보
+            csv += `"","","",""\\n`; // 빈 줄
+            csv += `"교육일자: ${data.date}","","",""\\n`;
+            csv += `"담당자: ${data.instructor}","","",""\\n`;
         });
         
         // UTF-8 BOM 추가 (한글 깨짐 방지)
@@ -160,7 +183,7 @@ function exportData() {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `curriculum_data_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `커리큘럼표_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
