@@ -5,7 +5,12 @@ let currentCategory = 'all';
 let searchQuery = '';
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadCurriculumData();
+    // 커리큘럼 데이터 로드 확인
+    if (typeof curriculumCategories === 'undefined') {
+        console.error('curriculumCategories가 정의되지 않았습니다. curriculum-data.js가 로드되었는지 확인하세요.');
+        return;
+    }
+    
     setupEventListeners();
     updateTotalTime();
     
@@ -31,10 +36,7 @@ function setupEventListeners() {
     selectedList.addEventListener('dragover', handleDragOver);
     selectedList.addEventListener('drop', handleDrop);
     
-    // 필터 버튼들
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', handleFilterChange);
-    });
+    // 필터 버튼들 (generateFilterButtons에서 설정됨)
     
     // 검색 기능
     const searchInput = document.getElementById('searchInput');
@@ -116,7 +118,13 @@ function generateFilterButtons() {
 
 // 필터 변경 처리
 function handleFilterChange(event) {
-    const category = event.target.dataset.category;
+    // 클릭된 요소가 버튼 내부 요소일 수 있으므로 가장 가까운 .filter-btn을 찾기
+    const button = event.target.closest('.filter-btn');
+    if (!button) return;
+    
+    const category = button.dataset.category;
+    if (!category) return;
+    
     currentCategory = category;
     
     // 모든 필터 버튼에서 active 클래스 제거
@@ -125,7 +133,17 @@ function handleFilterChange(event) {
     });
     
     // 선택된 버튼에 active 클래스 추가
-    event.target.classList.add('active');
+    button.classList.add('active');
+    
+    // 카테고리 제목 업데이트
+    const titleElement = document.getElementById('selectedCategoryTitle');
+    if (titleElement) {
+        if (category === 'all') {
+            titleElement.textContent = '전체 커리큘럼';
+        } else if (curriculumCategories[category]) {
+            titleElement.textContent = curriculumCategories[category].name;
+        }
+    }
     
     // 필터링된 커리큘럼 표시
     displayFilteredCurriculums();
@@ -165,14 +183,24 @@ function displayFilteredCurriculums() {
     const container = document.getElementById('allCurriculums');
     const titleElement = document.getElementById('selectedCategoryTitle');
     
+    if (!container) {
+        console.error('allCurriculums 컨테이너를 찾을 수 없습니다.');
+        return;
+    }
+    
     container.innerHTML = '';
     updateFilterCounts();
     
     // 커리큘럼 데이터가 아직 로드되지 않았다면 대기
     if (!curriculumCategories || Object.keys(curriculumCategories).length === 0) {
+        console.error('curriculumCategories가 정의되지 않았거나 비어있습니다:', curriculumCategories);
         container.innerHTML = '<div class="empty-message"><p>커리큘럼을 불러오는 중...</p></div>';
         return;
     }
+    
+    console.log('현재 카테고리:', currentCategory);
+    console.log('검색어:', searchQuery);
+    console.log('전체 카테고리 수:', Object.keys(curriculumCategories).length);
     
     let hasVisibleContent = false;
     let totalFilteredCount = 0;
@@ -248,41 +276,33 @@ function displayFilteredCurriculums() {
 // 필터 카운트 업데이트
 function updateFilterCounts() {
     // 커리큘럼 데이터가 아직 로드되지 않았다면 0으로 설정
-    if (!curriculumData || curriculumData.length === 0) {
+    if (!curriculumCategories || Object.keys(curriculumCategories).length === 0) {
         const allCountElement = document.getElementById('countAll');
         if (allCountElement) allCountElement.textContent = '0';
         
-        // 모든 카테고리 카운트를 0으로 설정
-        if (curriculumCategories) {
-            Object.keys(curriculumCategories).forEach(categoryKey => {
-                const countElement = getCategoryCountElement(categoryKey);
-                if (countElement) countElement.textContent = '0';
-            });
-        }
         return;
     }
     
-    // 전체 사용 가능한 커리큘럼 수
-    const totalAvailable = curriculumData.filter(curriculum => 
-        !selectedCurriculums.find(selected => selected.id === curriculum.id)
-    ).length;
+    // 전체 사용 가능한 커리큘럼 수 계산
+    let totalAvailable = 0;
+    
+    Object.keys(curriculumCategories).forEach(categoryKey => {
+        const category = curriculumCategories[categoryKey];
+        const availableInCategory = (category.curriculums || []).filter(curriculum => 
+            !selectedCurriculums.find(selected => selected.id === curriculum.id)
+        ).length;
+        
+        totalAvailable += availableInCategory;
+        
+        // 각 카테고리별 카운트 업데이트
+        const countElement = getCategoryCountElement(categoryKey);
+        if (countElement) {
+            countElement.textContent = availableInCategory;
+        }
+    });
+    
     const allCountElement = document.getElementById('countAll');
     if (allCountElement) allCountElement.textContent = totalAvailable;
-    
-    // 각 카테고리별 사용 가능한 커리큘럼 수
-    if (curriculumCategories && Object.keys(curriculumCategories).length > 0) {
-        Object.keys(curriculumCategories).forEach(categoryKey => {
-            const category = curriculumCategories[categoryKey];
-            const availableCount = (category.curriculums || []).filter(curriculum =>
-                !selectedCurriculums.find(selected => selected.id === curriculum.id)
-            ).length;
-            
-            const countElement = getCategoryCountElement(categoryKey);
-            if (countElement) {
-                countElement.textContent = availableCount;
-            }
-        });
-    }
 }
 
 // 카테고리 카운트 엘리먼트 가져오기
