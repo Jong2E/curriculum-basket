@@ -55,12 +55,19 @@
             
             <div class="data-management">
                 <button id="viewDataBtn" class="submit-btn">저장된 데이터 보기</button>
-                <button id="exportDataBtn" class="submit-btn">데이터 내보내기</button>
+                <button id="exportDataBtn" class="submit-btn">모든 데이터 내보내기</button>
+                <button id="exportSelectedBtn" class="submit-btn" style="background: #17a2b8;">선택된 데이터만 내보내기</button>
                 <button id="clearDataBtn" class="submit-btn" style="background: #e74c3c;">모든 데이터 삭제</button>
             </div>
             
             <div id="savedDataDisplay" class="saved-data-display" style="display: none;">
-                <h3>저장된 데이터</h3>
+                <div class="saved-data-controls">
+                    <h3>저장된 데이터</h3>
+                    <div class="selection-controls">
+                        <button id="selectAllBtn" class="small-btn">전체 선택</button>
+                        <button id="selectNoneBtn" class="small-btn">선택 해제</button>
+                    </div>
+                </div>
                 <div id="savedDataList"></div>
             </div>
         </div>

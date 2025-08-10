@@ -647,6 +647,183 @@
 }
 
 /* 설정 페이지 스타일 */
+.data-management {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.saved-data-display {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.saved-data-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.selection-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.small-btn {
+    padding: 8px 16px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.small-btn:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+.saved-data-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.saved-data-item:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border-color: #04abba;
+}
+
+.saved-data-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.saved-data-select {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.saved-data-select input[type="checkbox"] {
+    margin-top: 8px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.saved-data-select label {
+    cursor: pointer;
+    flex: 1;
+}
+
+.saved-data-select h4 {
+    margin: 0;
+    color: #04abba;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.saved-data-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.export-single-btn, .delete-single-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.export-single-btn {
+    background: #17a2b8;
+    color: white;
+}
+
+.export-single-btn:hover {
+    background: #138496;
+    transform: translateY(-1px);
+}
+
+.delete-single-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.delete-single-btn:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
+.saved-data-item .meta {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.saved-data-item .curriculums {
+    color: #495057;
+}
+
+.saved-data-item pre {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid #04abba;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .data-management {
+        flex-direction: column;
+    }
+    
+    .saved-data-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .saved-data-actions {
+        justify-content: flex-start;
+    }
+    
+    .saved-data-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .selection-controls {
+        justify-content: center;
+    }
+}
 .settings-info {
     background: #fff3cd;
     border: 1px solid #ffeaa7;

@@ -9,7 +9,12 @@ function setupEventListeners() {
     // 데이터 관리 버튼들
     document.getElementById('viewDataBtn').addEventListener('click', displaySavedData);
     document.getElementById('exportDataBtn').addEventListener('click', exportData);
+    document.getElementById('exportSelectedBtn').addEventListener('click', exportSelectedData);
     document.getElementById('clearDataBtn').addEventListener('click', clearAllData);
+    
+    // 선택 관리 버튼들
+    document.getElementById('selectAllBtn').addEventListener('click', selectAllData);
+    document.getElementById('selectNoneBtn').addEventListener('click', selectNoneData);
 }
 
 // 현재 설정 로드
@@ -93,6 +98,7 @@ function hideSavedData() {
 function createSavedDataElement(data, index) {
     const div = document.createElement('div');
     div.className = 'saved-data-item';
+    div.dataset.index = index;
     
     // 새로운 구조 또는 기존 구조 처리
     let curriculumList;
@@ -123,7 +129,18 @@ function createSavedDataElement(data, index) {
     })();
     
     div.innerHTML = `
-        <h4>${data.companyName} - ${data.courseName} <span style="color: #17a2b8; font-size: 0.8rem;">[${dataFormat}]</span></h4>
+        <div class="saved-data-header">
+            <div class="saved-data-select">
+                <input type="checkbox" id="select-${index}" class="data-select-checkbox">
+                <label for="select-${index}">
+                    <h4>${data.companyName} - ${data.courseName} <span style="color: #17a2b8; font-size: 0.8rem;">[${dataFormat}]</span></h4>
+                </label>
+            </div>
+            <div class="saved-data-actions">
+                <button onclick="exportSingleData(${index})" class="export-single-btn">이 데이터만 내보내기</button>
+                <button onclick="deleteSingleData(${index})" class="delete-single-btn">삭제</button>
+            </div>
+        </div>
         <div class="meta">
             <strong>담당자:</strong> ${data.instructor} | 
             <strong>총 시간:</strong> ${totalTime} | 
@@ -139,7 +156,33 @@ function createSavedDataElement(data, index) {
     return div;
 }
 
-// 데이터 내보내기 (새로운 강의 블록 구조에 맞춘 CSV)
+// 선택된 데이터만 내보내기
+function exportSelectedData() {
+    const selectedCheckboxes = document.querySelectorAll('.data-select-checkbox:checked');
+    if (selectedCheckboxes.length === 0) {
+        showMessage('내보낼 데이터를 선택해주세요.', 'error');
+        return;
+    }
+    
+    const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
+    const selectedIndices = Array.from(selectedCheckboxes).map(cb => parseInt(cb.id.replace('select-', '')));
+    const selectedData = selectedIndices.map(index => savedData[index]).filter(Boolean);
+    
+    exportDataToCSV(selectedData, true);
+}
+
+// 단일 데이터 내보내기
+function exportSingleData(index) {
+    const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
+    if (!savedData[index]) {
+        showMessage('선택한 데이터를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    exportDataToCSV([savedData[index]], false);
+}
+
+// 모든 데이터 내보내기 (기존 exportData 함수 수정)
 function exportData() {
     const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
     
@@ -148,12 +191,17 @@ function exportData() {
         return;
     }
     
+    exportDataToCSV(savedData, true);
+}
+
+// 실제 CSV 생성 및 다운로드 함수
+function exportDataToCSV(dataArray, isMultiple) {
     try {
         let csv = '';
         
         // 각 저장된 데이터별로 커리큘럼 표 생성
-        savedData.forEach((data, index) => {
-            if (index > 0) csv += '\\n\\n\\n'; // 데이터 간 구분 (여러 줄)
+        dataArray.forEach((data, index) => {
+            if (index > 0) csv += '\n\n\n'; // 데이터 간 구분 (실제 줄바꿈)
             
             const totalTime = data.totalTime || (() => {
                 const totalMinutes = data.totalMinutes || data.totalHours || 0;
@@ -162,14 +210,16 @@ function exportData() {
                 return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
             })();
             
-            // A1~E1: 제목 행 - 병합된 형태로 표현
-            csv += `"${data.companyName} 교육 커리큘럼 (${totalTime})","","","","본 커리큘럼은 일부 변동될 수 있습니다"\\n`;
+            const daysText = data.days ? ` - ${data.days}` : '';
             
-            // 2행: 범례 (D1 위치에 해당)
-            csv += `"","","","음영 표기는 실습 진행 항목입니다",""\\n`;
+            // A1~E1: 제목 행 - 올바른 병합 형태
+            csv += `"${data.companyName} 교육 커리큘럼 (${totalTime})${daysText}","","","음영 표기는 실습 진행 항목입니다","본 커리큘럼은 일부 변동될 수 있습니다"\n`;
+            
+            // 2행: 빈 행
+            csv += `"","","","",""\n`;
             
             // 3행: 테이블 헤더 (A3~D3)
-            csv += `"번호","강의 제목","상세 내용","시간",""\\n`;
+            csv += `"번호","강의 제목","상세 내용","시간",""\n`;
             
             // 새로운 구조 사용 (lectureBlocks가 있는 경우) 또는 기존 구조 변환
             let lectureBlocks;
@@ -191,36 +241,44 @@ function exportData() {
                 details.forEach((detail, detailIndex) => {
                     if (detailIndex === 0) {
                         // 첫 번째 줄: 번호, 제목, 상세내용, 시간 모두 표시
-                        csv += `"${block.blockId}","${escapeCsv(block.title)}","${escapeCsv(detail)}","${block.durationText}",""\\n`;
+                        csv += `"${block.blockId}","${escapeCsv(block.title)}","${escapeCsv(detail)}","${block.durationText}",""\n`;
                     } else {
                         // 나머지 줄: 상세내용만 표시 (셀 병합 효과)
-                        csv += `"","","${escapeCsv(detail)}","",""\\n`;
+                        csv += `"","","${escapeCsv(detail)}","",""\n`;
                     }
                 });
             });
             
             // 하단 정보 (빈 줄 후)
-            csv += `"","","","",""\\n`; // 빈 줄
-            csv += `"교육일자: ${data.date}","","","",""\\n`;
-            csv += `"담당자: ${data.instructor}","","","",""\\n`;
+            csv += `"","","","",""\n`; // 빈 줄
+            csv += `"교육일자: ${data.date}","","","",""\n`;
+            csv += `"담당자: ${data.instructor}","","","",""\n`;
         });
         
         // UTF-8 BOM 추가 (한글 깨짐 방지)
         const BOM = '\uFEFF';
         const csvWithBOM = BOM + csv;
         
+        // 파일명 생성
+        const fileName = isMultiple 
+            ? `커리큘럼표_${dataArray.length}개_${new Date().toISOString().split('T')[0]}.csv`
+            : `커리큘럼표_${dataArray[0].companyName}_${new Date().toISOString().split('T')[0]}.csv`;
+        
         // 파일 다운로드
         const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `강의블록형_커리큘럼표_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', fileName);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showMessage('강의 블록 형식의 커리큘럼표 CSV 파일이 생성되었습니다.', 'success');
+        const message = isMultiple 
+            ? `${dataArray.length}개의 커리큘럼표 CSV 파일이 생성되었습니다.`
+            : '커리큘럼표 CSV 파일이 생성되었습니다.';
+        showMessage(message, 'success');
     } catch (error) {
         console.error('데이터 내보내기 오류:', error);
         showMessage('데이터 내보내기 중 오류가 발생했습니다.', 'error');
@@ -278,6 +336,46 @@ function convertToLectureBlocks(curriculums) {
             details: details,
             originalCurriculum: curriculum // 원본 데이터 보존
         };
+    });
+}
+
+// 단일 데이터 삭제
+function deleteSingleData(index) {
+    const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
+    if (!savedData[index]) {
+        showMessage('선택한 데이터를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    const dataInfo = `${savedData[index].companyName} - ${savedData[index].courseName}`;
+    if (confirm(`'${dataInfo}' 데이터를 삭제하시겠습니까?`)) {
+        try {
+            savedData.splice(index, 1);
+            localStorage.setItem('savedCurriculums', JSON.stringify(savedData));
+            showMessage('데이터가 삭제되었습니다.', 'success');
+            
+            // 데이터 표시가 열려있다면 업데이트
+            if (document.getElementById('savedDataDisplay').style.display !== 'none') {
+                displaySavedData();
+            }
+        } catch (error) {
+            console.error('데이터 삭제 오류:', error);
+            showMessage('데이터 삭제 중 오류가 발생했습니다.', 'error');
+        }
+    }
+}
+
+// 전체 선택
+function selectAllData() {
+    document.querySelectorAll('.data-select-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+// 선택 해제
+function selectNoneData() {
+    document.querySelectorAll('.data-select-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
     });
 }
 
