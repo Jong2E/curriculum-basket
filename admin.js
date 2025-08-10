@@ -25,32 +25,47 @@ function setupEventListeners() {
         }
     });
     
-    // 필터 버튼들
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', handleFilterChange);
-    });
-    
     // 검색 기능
     const searchInput = document.getElementById('searchInput');
     const clearBtn = document.getElementById('clearSearch');
     
-    searchInput.addEventListener('input', handleSearch);
-    clearBtn.addEventListener('click', clearSearch);
+    if (searchInput) searchInput.addEventListener('input', handleSearch);
+    if (clearBtn) clearBtn.addEventListener('click', clearSearch);
     
     // 초기화
     generateAdminFilterButtons();
     displayCategoryList();
+    displayCurriculumList(); // 커리큘럼 목록도 초기 표시
     updateCurriculumCategorySelect();
 }
 
 // 커리큘럼 목록 표시 (필터링 및 검색 적용)
 function displayCurriculumList() {
     const listContainer = document.getElementById('curriculumList');
+    if (!listContainer) {
+        console.error('curriculumList 컨테이너를 찾을 수 없습니다.');
+        return;
+    }
+    
     listContainer.innerHTML = '';
+    
+    // 커리큘럼 데이터가 아직 로드되지 않았다면 대기
+    if (!curriculumCategories || Object.keys(curriculumCategories).length === 0) {
+        console.error('curriculumCategories가 정의되지 않았거나 비어있습니다:', curriculumCategories);
+        listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">커리큘럼을 불러오는 중...</p>';
+        return;
+    }
     
     updateFilterCounts();
     
-    if (curriculumData.length === 0) {
+    // 전체 커리큘럼 개수 확인
+    let totalCurriculums = 0;
+    Object.keys(curriculumCategories).forEach(categoryKey => {
+        const category = curriculumCategories[categoryKey];
+        totalCurriculums += (category.curriculums || []).length;
+    });
+    
+    if (totalCurriculums === 0) {
         listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 40px;">등록된 커리큘럼이 없습니다.</p>';
         return;
     }
@@ -62,7 +77,7 @@ function displayCurriculumList() {
         const category = curriculumCategories[categoryKey];
         
         // 현재 필터와 검색 조건에 맞는 커리큘럼들 필터링
-        let filteredCurriculums = category.curriculums;
+        let filteredCurriculums = category.curriculums || [];
         
         // 카테고리 필터 적용
         if (currentFilter !== 'all' && currentFilter !== categoryKey) {
@@ -241,7 +256,13 @@ function closeModal() {
 
 // 필터 변경 처리
 function handleFilterChange(event) {
-    const category = event.target.dataset.category;
+    // 클릭된 요소가 버튼 내부 요소일 수 있으므로 가장 가까운 .filter-btn을 찾기
+    const button = event.target.closest('.filter-btn');
+    if (!button) return;
+    
+    const category = button.dataset.category;
+    if (!category) return;
+    
     currentFilter = category;
     
     // 모든 필터 버튼에서 active 클래스 제거
@@ -250,7 +271,7 @@ function handleFilterChange(event) {
     });
     
     // 선택된 버튼에 active 클래스 추가
-    event.target.classList.add('active');
+    button.classList.add('active');
     
     // 목록 다시 표시
     displayCurriculumList();
@@ -287,18 +308,49 @@ function clearSearch() {
 
 // 필터 카운트 업데이트
 function updateFilterCounts() {
-    const totalCount = curriculumData.length;
-    document.getElementById('countAll').textContent = totalCount;
+    // 커리큘럼 데이터가 아직 로드되지 않았다면 0으로 설정
+    if (!curriculumCategories || Object.keys(curriculumCategories).length === 0) {
+        const allCountElement = document.getElementById('countAll');
+        if (allCountElement) allCountElement.textContent = '0';
+        return;
+    }
     
-    // 각 카테고리별 카운트
+    // 전체 커리큘럼 수 계산
+    let totalCount = 0;
+    
     Object.keys(curriculumCategories).forEach(categoryKey => {
         const category = curriculumCategories[categoryKey];
-        const countElement = document.getElementById(`count${categoryKey === 'general_office' ? 'General' : 
-                                                            categoryKey === 'marketing' ? 'Marketing' : 'Design'}`);
+        const categoryCount = (category.curriculums || []).length;
+        totalCount += categoryCount;
+        
+        // 각 카테고리별 카운트 업데이트
+        const countElement = getAdminCategoryCountElement(categoryKey);
         if (countElement) {
-            countElement.textContent = category.curriculums.length;
+            countElement.textContent = categoryCount;
         }
     });
+    
+    const allCountElement = document.getElementById('countAll');
+    if (allCountElement) {
+        allCountElement.textContent = totalCount;
+    }
+}
+
+// 관리자 페이지용 카테고리 카운트 엘리먼트 가져오기
+function getAdminCategoryCountElement(categoryKey) {
+    let countId;
+    if (categoryKey === 'general_office') {
+        countId = 'countGeneral';
+    } else if (categoryKey === 'marketing') {
+        countId = 'countMarketing';  
+    } else if (categoryKey === 'design') {
+        countId = 'countDesign';
+    } else {
+        // 새로운 카테고리의 경우 동적 ID 생성
+        countId = `count${categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())}`;
+    }
+    
+    return document.getElementById(countId);
 }
 
 // 관리자 페이지 필터 버튼 생성
