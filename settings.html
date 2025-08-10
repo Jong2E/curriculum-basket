@@ -65,20 +65,77 @@
             </div>
         </div>
 
-        <!-- 스프레드시트 헤더 설정 안내 -->
+        <!-- 스프레드시트 준비 방법 -->
         <div class="admin-section">
             <h2>스프레드시트 준비 방법</h2>
             <div class="instructions">
-                <p>구글 스프레드시트의 첫 번째 행에 다음과 같은 헤더를 설정해주세요:</p>
-                <div class="header-example">
-                    <table>
+                <h3>1. 시트 헤더 및 기본 정보 입력</h3>
+                <p><strong>A1~E1:</strong> '### 교육 커리큘럼 (총 시간) - (일차)' 와 같은 형태로, ### 부분에 고객사명을, (총 시간) 부분에 고객사 맞춤 총 시간을, (일차)에 교육 일차를 입력합니다. (교육 일차가 없을 시 기재하지 않음)</p>
+                
+                <p><strong>A3~D3:</strong> 다음의 열 제목을 입력합니다.</p>
+                <ul>
+                    <li><strong>A3:</strong> 번호</li>
+                    <li><strong>B3:</strong> 강의 제목</li>
+                    <li><strong>C3:</strong> 상세 내용</li>
+                    <li><strong>D3:</strong> 시간</li>
+                </ul>
+                
+                <p><strong>D1:</strong> '음영 표기는 실습 진행 항목입니다'와 같이, 범례나 참고 사항을 기입합니다.</p>
+                <p><strong>E1:</strong> '본 커리큘럼은 일부 변동될 수 있습니다'와 같은 주석을 기입합니다.</p>
+                
+                <h3>2. 강의 블록별 데이터 입력 및 셀 병합</h3>
+                <p>각 강의 블록은 C열의 상세 내용 항목 개수에 따라 A, B, D열의 셀 병합을 유동적으로 조절하는 것이 핵심입니다.</p>
+                
+                <h4>1단계: 상세 내용 입력</h4>
+                <p>가장 먼저 C열에 상세 내용을 모두 입력합니다. 각 내용은 한 줄씩 다른 셀에 입력합니다. 예를 들어, 첫 번째 강의의 상세 내용이 7개라면 C4부터 C10까지 각각 하나씩 입력합니다.</p>
+                
+                <h4>2단계: 셀 병합</h4>
+                <p>C열에 입력한 상세 내용의 행 개수(예: 7개)를 파악합니다.</p>
+                <p>A열, B열, D열에서 해당 개수(예: 7개)만큼의 셀을 선택하여 병합합니다.</p>
+                <ul>
+                    <li><strong>A열:</strong> A4부터 A10까지 병합 후 번호(예: 1) 입력.</li>
+                    <li><strong>B열:</strong> B4부터 B10까지 병합 후 강의 제목(예: ChatGPT 활용 노하우 및 주의점) 입력.</li>
+                    <li><strong>D열:</strong> D4부터 D10까지 병합 후 시간(예: 1h) 입력.</li>
+                </ul>
+                
+                <h4>3단계: 다음 블록 진행</h4>
+                <p>두 번째 강의 블록도 동일한 방식으로 진행합니다. C열에 상세 내용을 먼저 입력하고, 그 개수에 맞춰 A, B, D열의 셀을 병합합니다.</p>
+                
+                <div class="header-example" style="margin-top: 20px;">
+                    <h4>예시 형태:</h4>
+                    <table style="border-collapse: collapse; border: 1px solid #ddd;">
+                        <tr style="background: #f8f9fa;">
+                            <th style="border: 1px solid #ddd; padding: 8px;">A</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">B</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">C</th>
+                            <th style="border: 1px solid #ddd; padding: 8px;">D</th>
+                        </tr>
                         <tr>
-                            <th>A열: 고객사명</th>
-                            <th>B열: 교육명</th>
-                            <th>C열: 총 시간</th>
-                            <th>D열: 날짜</th>
-                            <th>E열: 담당자</th>
-                            <th>F열: 커리큘럼 상세</th>
+                            <td colspan="4" style="border: 1px solid #ddd; padding: 8px; text-align: center; background: #e3f2fd;">ABC회사 교육 커리큘럼 (8시간) - 1일차</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;"></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;"></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">음영 표기는 실습 진행 항목입니다</td>
+                        </tr>
+                        <tr style="background: #f8f9fa;">
+                            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">번호</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">강의 제목</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">상세 내용</td>
+                            <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">시간</td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle;">1</td>
+                            <td rowspan="3" style="border: 1px solid #ddd; padding: 8px; vertical-align: middle;">ChatGPT 활용 노하우</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">효과적인 프롬프트 작성법</td>
+                            <td rowspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle;">2h</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">업무별 활용 사례</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">주의사항 및 한계점</td>
                         </tr>
                     </table>
                 </div>

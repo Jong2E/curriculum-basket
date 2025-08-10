@@ -10,6 +10,9 @@ function setupEventListeners() {
     // 새 커리큘럼 추가 폼
     document.getElementById('addCurriculumForm').addEventListener('submit', handleAddCurriculum);
     
+    // 새 카테고리 추가 폼
+    document.getElementById('addCategoryForm').addEventListener('submit', handleAddCategory);
+    
     // 커리큘럼 수정 폼
     document.getElementById('editCurriculumForm').addEventListener('submit', handleEditCurriculum);
     
@@ -33,6 +36,11 @@ function setupEventListeners() {
     
     searchInput.addEventListener('input', handleSearch);
     clearBtn.addEventListener('click', clearSearch);
+    
+    // 초기화
+    generateAdminFilterButtons();
+    displayCategoryList();
+    updateCurriculumCategorySelect();
 }
 
 // 커리큘럼 목록 표시 (필터링 및 검색 적용)
@@ -291,6 +299,206 @@ function updateFilterCounts() {
             countElement.textContent = category.curriculums.length;
         }
     });
+}
+
+// 관리자 페이지 필터 버튼 생성
+function generateAdminFilterButtons() {
+    const filterButtons = document.querySelector('.filter-buttons');
+    if (!filterButtons) return;
+    
+    // 기존 버튼들 제거
+    filterButtons.innerHTML = '';
+    
+    // 전체 보기 버튼
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.dataset.category = 'all';
+    allBtn.innerHTML = '전체 보기 <span class="count" id="countAll">0</span>';
+    filterButtons.appendChild(allBtn);
+    
+    // 카테고리별 버튼들 생성
+    if (curriculumCategories && Object.keys(curriculumCategories).length > 0) {
+        Object.keys(curriculumCategories).forEach(categoryKey => {
+            const category = curriculumCategories[categoryKey];
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.dataset.category = categoryKey;
+            
+            // 카운트 ID 생성
+            let countId;
+            if (categoryKey === 'general_office') {
+                countId = 'countGeneral';
+            } else if (categoryKey === 'marketing') {
+                countId = 'countMarketing';
+            } else if (categoryKey === 'design') {
+                countId = 'countDesign';
+            } else {
+                countId = `count${categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())}`;
+            }
+            
+            btn.innerHTML = `${category.name} <span class="count" id="${countId}">0</span>`;
+            filterButtons.appendChild(btn);
+        });
+    }
+    
+    // 이벤트 리스너 다시 추가
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', handleFilterChange);
+    });
+    
+    updateFilterCounts();
+}
+
+// 카테고리 추가 처리
+function handleAddCategory(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const categoryKey = formData.get('categoryKey').trim().toLowerCase();
+    const categoryName = formData.get('categoryName').trim();
+    const categoryDescription = formData.get('categoryDescription').trim();
+    const categoryIcon = formData.get('categoryIcon');
+    
+    if (!categoryKey || !categoryName || !categoryDescription || !categoryIcon) {
+        showMessage('모든 필드를 입력해주세요.', 'error');
+        return;
+    }
+    
+    try {
+        addCategory(categoryKey, categoryName, categoryDescription, categoryIcon);
+        generateAdminFilterButtons(); // 필터 버튼 재생성
+        displayCategoryList();
+        updateCurriculumCategorySelect();
+        event.target.reset();
+        showMessage('카테고리가 성공적으로 추가되었습니다.', 'success');
+    } catch (error) {
+        showMessage(error.message, 'error');
+        console.error('Error adding category:', error);
+    }
+}
+
+// 카테고리 목록 표시
+function displayCategoryList() {
+    const listContainer = document.getElementById('categoryList');
+    listContainer.innerHTML = '';
+    
+    const categories = getCategoryListForAdmin();
+    
+    if (categories.length === 0) {
+        listContainer.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">등록된 카테고리가 없습니다.</p>';
+        return;
+    }
+    
+    categories.forEach(category => {
+        const categoryElement = createCategoryElement(category);
+        listContainer.appendChild(categoryElement);
+    });
+}
+
+// 카테고리 요소 생성
+function createCategoryElement(category) {
+    const div = document.createElement('div');
+    div.className = 'category-item';
+    div.innerHTML = `
+        <div class="category-details">
+            <div class="category-icon">${category.icon}</div>
+            <div class="category-info">
+                <h4>${category.name}</h4>
+                <div class="category-key">${category.key}</div>
+                <p class="category-desc">${category.description}</p>
+            </div>
+        </div>
+        <div class="category-stats">
+            <span class="curriculum-count">${category.count}</span>
+            <div class="count-label">커리큘럼</div>
+        </div>
+        <div class="category-actions">
+            <button class="edit-category-btn" onclick="editCategory('${category.key}')">수정</button>
+            ${!category.isProtected ? 
+                `<button class="delete-category-btn" onclick="deleteCategoryItem('${category.key}')">삭제</button>` : 
+                '<span style="color: #6c757d; font-size: 0.8rem;">보호된 카테고리</span>'
+            }
+        </div>
+    `;
+    return div;
+}
+
+// 커리큘럼 카테고리 선택 옵션 업데이트
+function updateCurriculumCategorySelect() {
+    const categorySelect = document.getElementById('category');
+    categorySelect.innerHTML = '';
+    
+    const categories = getCategoryListForAdmin();
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.key;
+        option.textContent = `${category.icon} ${category.name}`;
+        categorySelect.appendChild(option);
+    });
+}
+
+// 카테고리 수정 (간단한 구현)
+function editCategory(categoryKey) {
+    const category = curriculumCategories[categoryKey];
+    if (!category) {
+        showMessage('카테고리를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    const newName = prompt('카테고리 이름을 입력하세요:', category.name);
+    if (!newName || newName.trim() === '') return;
+    
+    const newDescription = prompt('카테고리 설명을 입력하세요:', category.description);
+    if (!newDescription || newDescription.trim() === '') return;
+    
+    const newIcon = prompt('카테고리 아이콘을 입력하세요:', category.icon);
+    if (!newIcon || newIcon.trim() === '') return;
+    
+    try {
+        updateCategory(categoryKey, newName.trim(), newDescription.trim(), newIcon.trim());
+        generateAdminFilterButtons(); // 필터 버튼 재생성
+        displayCategoryList();
+        updateCurriculumCategorySelect();
+        showMessage('카테고리가 성공적으로 수정되었습니다.', 'success');
+    } catch (error) {
+        showMessage(error.message, 'error');
+        console.error('Error updating category:', error);
+    }
+}
+
+// 카테고리 삭제
+function deleteCategoryItem(categoryKey) {
+    const category = curriculumCategories[categoryKey];
+    if (!category) {
+        showMessage('카테고리를 찾을 수 없습니다.', 'error');
+        return;
+    }
+    
+    const curriculumCount = category.curriculums.length;
+    let confirmMessage = `"${category.name}" 카테고리를 정말 삭제하시겠습니까?`;
+    
+    if (curriculumCount > 0) {
+        confirmMessage += `\n\n이 카테고리에는 ${curriculumCount}개의 커리큘럼이 있습니다.\n삭제 시 해당 커리큘럼들은 '일반 사무 업무' 카테고리로 이동됩니다.`;
+    }
+    
+    if (confirm(confirmMessage)) {
+        try {
+            const result = deleteCategory(categoryKey);
+            generateAdminFilterButtons(); // 필터 버튼 재생성
+            displayCategoryList();
+            updateCurriculumCategorySelect();
+            displayCurriculumList();
+            
+            if (result.movedCurriculums > 0) {
+                showMessage(`카테고리가 삭제되었습니다. ${result.movedCurriculums}개의 커리큘럼이 '일반 사무 업무'로 이동되었습니다.`, 'success');
+            } else {
+                showMessage('카테고리가 성공적으로 삭제되었습니다.', 'success');
+            }
+        } catch (error) {
+            showMessage(error.message, 'error');
+            console.error('Error deleting category:', error);
+        }
+    }
 }
 
 // 메시지 표시

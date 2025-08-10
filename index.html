@@ -35,6 +35,10 @@
                     <label for="courseName">교육명:</label>
                     <input type="text" id="courseName" placeholder="교육명을 입력하세요" required>
                 </div>
+                <div class="form-group">
+                    <label for="days">교육 일차 (선택):</label>
+                    <input type="text" id="days" placeholder="예: 1일차">
+                </div>
             </div>
         </div>
 
@@ -49,34 +53,7 @@
                     <div class="filter-section">
                         <h4>카테고리 선택</h4>
                         <div class="filter-buttons">
-                            <button class="filter-btn active" data-category="all">
-                                <span class="btn-content">
-                                    <span class="btn-icon">🌟</span>
-                                    전체 보기
-                                </span>
-                                <span class="count" id="countAll">0</span>
-                            </button>
-                            <button class="filter-btn" data-category="general_office">
-                                <span class="btn-content">
-                                    <span class="btn-icon">💼</span>
-                                    일반 사무 업무
-                                </span>
-                                <span class="count" id="countGeneral">0</span>
-                            </button>
-                            <button class="filter-btn" data-category="marketing">
-                                <span class="btn-content">
-                                    <span class="btn-icon">📈</span>
-                                    마케팅 업무
-                                </span>
-                                <span class="count" id="countMarketing">0</span>
-                            </button>
-                            <button class="filter-btn" data-category="design">
-                                <span class="btn-content">
-                                    <span class="btn-icon">🎨</span>
-                                    디자인 업무
-                                </span>
-                                <span class="count" id="countDesign">0</span>
-                            </button>
+                            <!-- 필터 버튼들이 동적으로 생성됩니다 -->
                         </div>
                     </div>
                     

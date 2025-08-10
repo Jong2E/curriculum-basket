@@ -94,32 +94,52 @@ function createSavedDataElement(data, index) {
     const div = document.createElement('div');
     div.className = 'saved-data-item';
     
-    const curriculumList = data.curriculums.map((curriculum, i) => 
-        `${i + 1}. ${curriculum.title} (${curriculum.duration}분)`
-    ).join('\\n');
+    // 새로운 구조 또는 기존 구조 처리
+    let curriculumList;
+    let dataFormat = '구 형식';
+    
+    if (data.lectureBlocks && data.version === '2.0') {
+        // 새로운 강의 블록 형식
+        dataFormat = '강의 블록 형식';
+        curriculumList = data.lectureBlocks.map((block, i) => {
+            const detailsText = block.details.length > 1 
+                ? `\n  └ ${block.details.join('\n  └ ')}` 
+                : `\n  └ ${block.details[0]}`;
+            return `${block.blockId}. ${block.title} (${block.durationText})${detailsText}`;
+        }).join('\n');
+    } else {
+        // 기존 형식 (하위 호환성)
+        const curriculums = data.curriculums || [];
+        curriculumList = curriculums.map((curriculum, i) => 
+            `${i + 1}. ${curriculum.title} (${curriculum.duration}분)`
+        ).join('\n');
+    }
+    
+    const totalTime = data.totalTime || (() => {
+        const totalMinutes = data.totalMinutes || data.totalHours || 0;
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+    })();
     
     div.innerHTML = `
-        <h4>${data.companyName} - ${data.courseName}</h4>
+        <h4>${data.companyName} - ${data.courseName} <span style="color: #17a2b8; font-size: 0.8rem;">[${dataFormat}]</span></h4>
         <div class="meta">
             <strong>담당자:</strong> ${data.instructor} | 
-            <strong>총 시간:</strong> ${data.totalTime || (() => {
-                const totalMinutes = data.totalMinutes || data.totalHours || 0;
-                const hours = Math.floor(totalMinutes / 60);
-                const minutes = totalMinutes % 60;
-                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
-            })()} | 
+            <strong>총 시간:</strong> ${totalTime} | 
             <strong>날짜:</strong> ${data.date}
+            ${data.migrated ? ' | <span style="color: #28a745; font-size: 0.8rem;">✓ 마이그레이션 완료</span>' : ''}
         </div>
         <div class="curriculums">
-            <strong>커리큘럼:</strong>
-${curriculumList}
+            <strong>커리큘럼 구성:</strong>
+<pre style="white-space: pre-wrap; font-family: inherit; margin: 8px 0;">${curriculumList}</pre>
         </div>
     `;
     
     return div;
 }
 
-// 데이터 내보내기 (CSV 형식)
+// 데이터 내보내기 (새로운 강의 블록 구조에 맞춘 CSV)
 function exportData() {
     const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
     
@@ -133,7 +153,7 @@ function exportData() {
         
         // 각 저장된 데이터별로 커리큘럼 표 생성
         savedData.forEach((data, index) => {
-            if (index > 0) csv += '\\n\\n'; // 데이터 간 구분
+            if (index > 0) csv += '\\n\\n\\n'; // 데이터 간 구분 (여러 줄)
             
             const totalTime = data.totalTime || (() => {
                 const totalMinutes = data.totalMinutes || data.totalHours || 0;
@@ -142,36 +162,47 @@ function exportData() {
                 return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
             })();
             
-            // 헤더 정보
-            csv += `"■ ${data.companyName} 교육 커리큘럼(${totalTime}) - ${data.courseName}","","","음영 표기는 실습 진행 항목입니다."\\n`;
-            csv += `"","","","* 본 커리큘럼은 일부 변동 될 수 있습니다."\\n`;
-            csv += `"","","",""\\n`; // 빈 줄
-            csv += `"번호","강의 제목","상세 내용","시간"\\n`; // 테이블 헤더
+            // A1~E1: 제목 행 - 병합된 형태로 표현
+            csv += `"${data.companyName} 교육 커리큘럼 (${totalTime})","","","","본 커리큘럼은 일부 변동될 수 있습니다"\\n`;
             
-            // 커리큘럼 데이터 행들
-            data.curriculums.forEach((curriculum, currIndex) => {
-                const hours = Math.floor(curriculum.duration / 60);
-                const minutes = curriculum.duration % 60;
-                let timeText;
+            // 2행: 범례 (D1 위치에 해당)
+            csv += `"","","","음영 표기는 실습 진행 항목입니다",""\\n`;
+            
+            // 3행: 테이블 헤더 (A3~D3)
+            csv += `"번호","강의 제목","상세 내용","시간",""\\n`;
+            
+            // 새로운 구조 사용 (lectureBlocks가 있는 경우) 또는 기존 구조 변환
+            let lectureBlocks;
+            if (data.lectureBlocks && data.version === '2.0') {
+                lectureBlocks = data.lectureBlocks;
+            } else {
+                // 구 형식 데이터를 즉석에서 변환
+                lectureBlocks = convertToLectureBlocks(data.curriculums || []);
+            }
+            
+            // CSV에서 쌍따옴표 이스케이프 처리 함수
+            const escapeCsv = (str) => String(str || '').replace(/"/g, '""');
+            
+            // 강의 블록별로 데이터 처리
+            lectureBlocks.forEach((block) => {
+                const details = block.details || [block.originalCurriculum?.description || ''];
                 
-                if (hours > 0 && minutes > 0) {
-                    timeText = `${hours}h ${minutes}m`;
-                } else if (hours > 0) {
-                    timeText = `${hours}h`;
-                } else {
-                    timeText = `${minutes}m`;
-                }
-                
-                // CSV에서 쌍따옴표 이스케이프 처리
-                const escapeCsv = (str) => String(str || '').replace(/"/g, '""');
-                
-                csv += `"${currIndex + 1}","${escapeCsv(curriculum.title)}","${escapeCsv(curriculum.description)}","${timeText}"\\n`;
+                // 각 상세 내용 줄별로 처리
+                details.forEach((detail, detailIndex) => {
+                    if (detailIndex === 0) {
+                        // 첫 번째 줄: 번호, 제목, 상세내용, 시간 모두 표시
+                        csv += `"${block.blockId}","${escapeCsv(block.title)}","${escapeCsv(detail)}","${block.durationText}",""\\n`;
+                    } else {
+                        // 나머지 줄: 상세내용만 표시 (셀 병합 효과)
+                        csv += `"","","${escapeCsv(detail)}","",""\\n`;
+                    }
+                });
             });
             
-            // 하단 정보
-            csv += `"","","",""\\n`; // 빈 줄
-            csv += `"교육일자: ${data.date}","","",""\\n`;
-            csv += `"담당자: ${data.instructor}","","",""\\n`;
+            // 하단 정보 (빈 줄 후)
+            csv += `"","","","",""\\n`; // 빈 줄
+            csv += `"교육일자: ${data.date}","","","",""\\n`;
+            csv += `"담당자: ${data.instructor}","","","",""\\n`;
         });
         
         // UTF-8 BOM 추가 (한글 깨짐 방지)
@@ -183,17 +214,71 @@ function exportData() {
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.setAttribute('href', url);
-        link.setAttribute('download', `커리큘럼표_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download', `강의블록형_커리큘럼표_${new Date().toISOString().split('T')[0]}.csv`);
         link.style.visibility = 'hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         
-        showMessage('데이터가 CSV 파일로 내보내기되었습니다.', 'success');
+        showMessage('강의 블록 형식의 커리큘럼표 CSV 파일이 생성되었습니다.', 'success');
     } catch (error) {
         console.error('데이터 내보내기 오류:', error);
         showMessage('데이터 내보내기 중 오류가 발생했습니다.', 'error');
     }
+}
+
+// 설정 페이지에서도 사용할 수 있도록 변환 함수 복사
+function convertToLectureBlocks(curriculums) {
+    if (!curriculums || !Array.isArray(curriculums)) {
+        return [];
+    }
+    
+    return curriculums.map((curriculum, index) => {
+        // description을 문장 단위로 분할하여 상세 내용 배열 생성
+        let details = [];
+        
+        // 마침표, 느낌표, 물음표 등으로 문장 분할
+        const sentences = curriculum.description
+            .split(/[.!?]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        
+        if (sentences.length > 1) {
+            details = sentences.map(sentence => sentence + '.');
+        } else {
+            // 문장이 하나이거나 분할되지 않는 경우, 쉼표나 줄바꿈으로 분할 시도
+            const parts = curriculum.description
+                .split(/[,\n]/)
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            
+            if (parts.length > 1) {
+                details = parts;
+            } else {
+                // 분할할 수 없는 경우 전체를 하나의 항목으로
+                details = [curriculum.description];
+            }
+        }
+        
+        return {
+            blockId: index + 1,
+            title: curriculum.title,
+            duration: curriculum.duration,
+            durationText: (() => {
+                const hours = Math.floor(curriculum.duration / 60);
+                const minutes = curriculum.duration % 60;
+                if (hours > 0 && minutes > 0) {
+                    return `${hours}h ${minutes}m`;
+                } else if (hours > 0) {
+                    return `${hours}h`;
+                } else {
+                    return `${minutes}m`;
+                }
+            })(),
+            details: details,
+            originalCurriculum: curriculum // 원본 데이터 보존
+        };
+    });
 }
 
 // 모든 데이터 삭제

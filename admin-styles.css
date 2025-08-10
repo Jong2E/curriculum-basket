@@ -288,6 +288,179 @@
     border-color: #20d0e4;
 }
 
+/* 카테고리 관리 스타일 */
+.category-form-container, .category-list-container {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.category-form-container h3, .category-list-container h3 {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-bottom: 2px solid #04abba;
+    padding-bottom: 8px;
+}
+
+.category-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group small {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: block;
+}
+
+.category-management {
+    display: grid;
+    gap: 15px;
+}
+
+.category-item {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.category-item:hover {
+    border-color: #04abba;
+    box-shadow: 0 4px 12px rgba(4, 171, 186, 0.15);
+    transform: translateY(-2px);
+}
+
+.category-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.category-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    border-radius: 12px;
+}
+
+.category-info h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.category-info .category-key {
+    color: #6c757d;
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+    background: #f8f9fa;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    display: inline-block;
+}
+
+.category-info .category-desc {
+    color: #495057;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.category-stats {
+    text-align: center;
+    margin: 0 20px;
+}
+
+.category-stats .curriculum-count {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #04abba;
+    display: block;
+}
+
+.category-stats .count-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.category-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-category-btn, .delete-category-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.edit-category-btn {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.edit-category-btn:hover {
+    background: linear-gradient(135deg, #138496, #117a8b);
+    transform: translateY(-1px);
+}
+
+.delete-category-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.delete-category-btn:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .category-details {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
 /* 커리큘럼 필터링 섹션 */
 .curriculum-filters {
     background: #f8f9fa;

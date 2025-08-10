@@ -3,6 +3,7 @@ let curriculumCategories = {
     "general_office": {
         name: "일반 사무 업무",
         description: "AI를 활용한 일반적인 사무 업무 자동화 및 효율성 향상",
+        icon: "💼",
         curriculums: [
             {
                 id: 1,
@@ -105,6 +106,7 @@ let curriculumCategories = {
     "marketing": {
         name: "마케팅 업무",
         description: "AI를 활용한 마케팅 전략 수립 및 콘텐츠 제작",
+        icon: "📈",
         curriculums: [
             {
                 id: 17,
@@ -177,6 +179,7 @@ let curriculumCategories = {
     "design": {
         name: "디자인 업무",
         description: "AI를 활용한 창의적 디자인 및 시각 자료 제작",
+        icon: "🎨",
         curriculums: [
             {
                 id: 28,
@@ -348,6 +351,107 @@ function deleteCurriculum(id) {
         }
     }
     return null;
+}
+
+// 카테고리 추가
+function addCategory(categoryKey, categoryName, categoryDescription, categoryIcon) {
+    if (curriculumCategories[categoryKey]) {
+        throw new Error('이미 존재하는 카테고리 키입니다.');
+    }
+    
+    // 카테고리 키 유효성 검사
+    const keyPattern = /^[a-z0-9_]+$/;
+    if (!keyPattern.test(categoryKey)) {
+        throw new Error('카테고리 키는 영문 소문자, 숫자, 언더스코어만 사용할 수 있습니다.');
+    }
+    
+    curriculumCategories[categoryKey] = {
+        name: categoryName,
+        description: categoryDescription,
+        icon: categoryIcon,
+        curriculums: []
+    };
+    
+    saveCurriculumData();
+    
+    // 메인 페이지의 필터 버튼 업데이트 (메인 페이지에서만 실행)
+    if (typeof generateFilterButtons === 'function') {
+        generateFilterButtons();
+    }
+    
+    return curriculumCategories[categoryKey];
+}
+
+// 카테고리 수정
+function updateCategory(categoryKey, categoryName, categoryDescription, categoryIcon) {
+    if (!curriculumCategories[categoryKey]) {
+        throw new Error('존재하지 않는 카테고리입니다.');
+    }
+    
+    curriculumCategories[categoryKey].name = categoryName;
+    curriculumCategories[categoryKey].description = categoryDescription;
+    curriculumCategories[categoryKey].icon = categoryIcon;
+    
+    saveCurriculumData();
+    
+    // 메인 페이지의 필터 버튼 업데이트 (메인 페이지에서만 실행)
+    if (typeof generateFilterButtons === 'function') {
+        generateFilterButtons();
+    }
+    
+    return curriculumCategories[categoryKey];
+}
+
+// 카테고리 삭제
+function deleteCategory(categoryKey) {
+    if (!curriculumCategories[categoryKey]) {
+        throw new Error('존재하지 않는 카테고리입니다.');
+    }
+    
+    // 기본 카테고리 삭제 방지
+    const protectedCategories = ['general_office', 'marketing', 'design'];
+    if (protectedCategories.includes(categoryKey)) {
+        throw new Error('기본 카테고리는 삭제할 수 없습니다.');
+    }
+    
+    const category = curriculumCategories[categoryKey];
+    const curriculumCount = category.curriculums.length;
+    
+    if (curriculumCount > 0) {
+        // 해당 카테고리의 커리큘럼들을 일반 사무 업무로 이동
+        curriculumCategories['general_office'].curriculums = 
+            curriculumCategories['general_office'].curriculums.concat(category.curriculums);
+    }
+    
+    delete curriculumCategories[categoryKey];
+    saveCurriculumData();
+    
+    // 메인 페이지의 필터 버튼 업데이트 (메인 페이지에서만 실행)
+    if (typeof generateFilterButtons === 'function') {
+        generateFilterButtons();
+        // 삭제된 카테고리가 현재 선택된 필터라면 전체로 변경
+        if (typeof currentCategory !== 'undefined' && currentCategory === categoryKey) {
+            currentCategory = 'all';
+            document.querySelector('.filter-btn[data-category="all"]')?.classList.add('active');
+            if (typeof displayFilteredCurriculums === 'function') {
+                displayFilteredCurriculums();
+            }
+        }
+    }
+    
+    return { deletedCategory: category, movedCurriculums: curriculumCount };
+}
+
+// 카테고리 목록을 관리자용으로 가져오기 (아이콘 포함)
+function getCategoryListForAdmin() {
+    return Object.keys(curriculumCategories).map(key => ({
+        key: key,
+        name: curriculumCategories[key].name,
+        description: curriculumCategories[key].description,
+        icon: curriculumCategories[key].icon || '🌟',
+        count: curriculumCategories[key].curriculums.length,
+        isProtected: ['general_office', 'marketing', 'design'].includes(key)
+    }));
 }
 
 // 페이지 로드 시 데이터 초기화

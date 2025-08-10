@@ -8,6 +8,15 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCurriculumData();
     setupEventListeners();
     updateTotalTime();
+    
+    // 기존 데이터 마이그레이션 실행
+    const migrationCount = migrateOldData();
+    if (migrationCount > 0) {
+        console.log('데이터 마이그레이션 완료:', migrationCount);
+    }
+    
+    // 필터 버튼 동적 생성
+    generateFilterButtons();
     // 초기 상태에서 전체 커리큘럼을 표시
     displayFilteredCurriculums();
 });
@@ -33,10 +42,75 @@ function setupEventListeners() {
     
     searchInput.addEventListener('input', handleSearch);
     clearBtn.addEventListener('click', clearSearch);
+    
+    // 고객사 정보 입력 필드에서 오류 스타일 제거
+    const inputFields = ['companyName', 'instructorName', 'courseName'];
+    inputFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        field.addEventListener('input', function() {
+            this.classList.remove('error');
+        });
+    });
 }
 
-// 필터 버튼들 표시
-function displayFilterButtons() {
+// 필터 버튼들 동적 생성
+function generateFilterButtons() {
+    const filterButtons = document.querySelector('.filter-buttons');
+    if (!filterButtons) return;
+    
+    // 기존 버튼들 제거
+    filterButtons.innerHTML = '';
+    
+    // 전체 보기 버튼
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.dataset.category = 'all';
+    allBtn.innerHTML = `
+        <span class="btn-content">
+            <span class="btn-icon">🌟</span>
+            전체 보기
+        </span>
+        <span class="count" id="countAll">0</span>
+    `;
+    filterButtons.appendChild(allBtn);
+    
+    // 카테고리별 버튼들 생성
+    if (curriculumCategories && Object.keys(curriculumCategories).length > 0) {
+        Object.keys(curriculumCategories).forEach(categoryKey => {
+            const category = curriculumCategories[categoryKey];
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.dataset.category = categoryKey;
+            
+            // 카운트 ID 생성 (기존 형식과 호환성 유지)
+            let countId;
+            if (categoryKey === 'general_office') {
+                countId = 'countGeneral';
+            } else if (categoryKey === 'marketing') {
+                countId = 'countMarketing';
+            } else if (categoryKey === 'design') {
+                countId = 'countDesign';
+            } else {
+                // 새로운 카테고리의 경우 동적 ID 생성
+                countId = `count${categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())}`;
+            }
+            
+            btn.innerHTML = `
+                <span class="btn-content">
+                    <span class="btn-icon">${category.icon || '🌟'}</span>
+                    ${category.name}
+                </span>
+                <span class="count" id="${countId}">0</span>
+            `;
+            filterButtons.appendChild(btn);
+        });
+    }
+    
+    // 이벤트 리스너 다시 추가
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', handleFilterChange);
+    });
+    
     updateFilterCounts();
 }
 
@@ -175,10 +249,16 @@ function displayFilteredCurriculums() {
 function updateFilterCounts() {
     // 커리큘럼 데이터가 아직 로드되지 않았다면 0으로 설정
     if (!curriculumData || curriculumData.length === 0) {
-        document.getElementById('countAll').textContent = '0';
-        document.getElementById('countGeneral').textContent = '0';
-        document.getElementById('countMarketing').textContent = '0';
-        document.getElementById('countDesign').textContent = '0';
+        const allCountElement = document.getElementById('countAll');
+        if (allCountElement) allCountElement.textContent = '0';
+        
+        // 모든 카테고리 카운트를 0으로 설정
+        if (curriculumCategories) {
+            Object.keys(curriculumCategories).forEach(categoryKey => {
+                const countElement = getCategoryCountElement(categoryKey);
+                if (countElement) countElement.textContent = '0';
+            });
+        }
         return;
     }
     
@@ -186,7 +266,8 @@ function updateFilterCounts() {
     const totalAvailable = curriculumData.filter(curriculum => 
         !selectedCurriculums.find(selected => selected.id === curriculum.id)
     ).length;
-    document.getElementById('countAll').textContent = totalAvailable;
+    const allCountElement = document.getElementById('countAll');
+    if (allCountElement) allCountElement.textContent = totalAvailable;
     
     // 각 카테고리별 사용 가능한 커리큘럼 수
     if (curriculumCategories && Object.keys(curriculumCategories).length > 0) {
@@ -196,13 +277,28 @@ function updateFilterCounts() {
                 !selectedCurriculums.find(selected => selected.id === curriculum.id)
             ).length;
             
-            const countElement = document.getElementById(`count${categoryKey === 'general_office' ? 'General' : 
-                                                                categoryKey === 'marketing' ? 'Marketing' : 'Design'}`);
+            const countElement = getCategoryCountElement(categoryKey);
             if (countElement) {
                 countElement.textContent = availableCount;
             }
         });
     }
+}
+
+// 카테고리 카운트 엘리먼트 가져오기
+function getCategoryCountElement(categoryKey) {
+    let countId;
+    if (categoryKey === 'general_office') {
+        countId = 'countGeneral';
+    } else if (categoryKey === 'marketing') {
+        countId = 'countMarketing';
+    } else if (categoryKey === 'design') {
+        countId = 'countDesign';
+    } else {
+        // 새로운 카테고리의 경우 동적 ID 생성
+        countId = `count${categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1).replace(/_([a-z])/g, (match, letter) => letter.toUpperCase())}`;
+    }
+    return document.getElementById(countId);
 }
 
 // 전체 커리큘럼 목록 표시 (기존 호환성을 위해 유지)
@@ -265,6 +361,7 @@ function addCurriculum(curriculum) {
     displaySelectedCurriculums();
     updateTotalTime();
     updateCompleteButton();
+    updateFilterCounts();
     showMessage(`"${curriculum.title}" 커리큘럼이 추가되었습니다.`, 'success');
 }
 
@@ -276,6 +373,7 @@ function removeCurriculum(id) {
     displaySelectedCurriculums();
     updateTotalTime();
     updateCompleteButton();
+    updateFilterCounts();
     if (curriculum) {
         showMessage(`"${curriculum.title}" 커리큘럼이 제거되었습니다.`, 'success');
     }
@@ -342,13 +440,57 @@ async function handleComplete() {
     const instructorName = document.getElementById('instructorName').value.trim();
     const courseName = document.getElementById('courseName').value.trim();
     
-    if (!companyName || !instructorName || !courseName) {
-        showMessage('고객사 정보를 모두 입력해주세요.', 'error');
+    // 입력 필드 검증 및 하이라이트
+    const missingFields = [];
+    const companyNameInput = document.getElementById('companyName');
+    const instructorNameInput = document.getElementById('instructorName');
+    const courseNameInput = document.getElementById('courseName');
+    
+    // 모든 필드의 오류 스타일 초기화
+    companyNameInput.classList.remove('error');
+    instructorNameInput.classList.remove('error');
+    courseNameInput.classList.remove('error');
+    
+    if (!companyName) {
+        missingFields.push('고객사명');
+        companyNameInput.classList.add('error');
+    }
+    if (!instructorName) {
+        missingFields.push('담당자');
+        instructorNameInput.classList.add('error');
+    }
+    if (!courseName) {
+        missingFields.push('교육명');
+        courseNameInput.classList.add('error');
+    }
+    
+    if (missingFields.length > 0) {
+        showMessage(`다음 정보를 입력해주세요: ${missingFields.join(', ')}`, 'error');
         return;
     }
     
     if (selectedCurriculums.length === 0) {
         showMessage('선택된 커리큘럼이 없습니다.', 'error');
+        return;
+    }
+    
+    // 장바구니 확정 확인 대화상자
+    const totalTime = selectedCurriculums.reduce((sum, curriculum) => sum + curriculum.duration, 0);
+    const hours = Math.floor(totalTime / 60);
+    const minutes = totalTime % 60;
+    const timeText = hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+    
+    const confirmMessage = `장바구니를 확정하시겠습니까?
+
+📋 고객사: ${companyName}
+👤 담당자: ${instructorName}
+🎯 교육명: ${courseName}
+📚 선택된 커리큘럼: ${selectedCurriculums.length}개
+⏰ 총 교육 시간: ${timeText}
+
+확정하시면 데이터가 저장됩니다.`;
+    
+    if (!confirm(confirmMessage)) {
         return;
     }
     
@@ -370,9 +512,27 @@ async function handleComplete() {
             timestamp: new Date().toISOString()
         };
         
+        // 새로운 데이터 구조로 변환하여 저장
+        const curriculumBlocks = convertToLectureBlocks(selectedCurriculums);
+        const newFormatData = {
+            companyName,
+            courseName,
+            totalMinutes: totalHours,
+            totalTime: (() => {
+                const hours = Math.floor(totalHours / 60);
+                const minutes = totalHours % 60;
+                return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+            })(),
+            date: new Date().toLocaleDateString('ko-KR'),
+            instructor: instructorName,
+            lectureBlocks: curriculumBlocks, // 새로운 구조
+            timestamp: new Date().toISOString(),
+            version: '2.0' // 새로운 데이터 형식 버전
+        };
+        
         // 로컬 스토리지에 저장
         let savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
-        savedData.push(data);
+        savedData.push(newFormatData);
         localStorage.setItem('savedCurriculums', JSON.stringify(savedData));
         
         console.log('로컬에 저장된 데이터:', data);
@@ -414,6 +574,88 @@ function resetForm() {
     updateTotalTime();
     updateCompleteButton();
     document.getElementById('completeBtn').textContent = '완성하기';
+}
+
+// 커리큘럼을 강의 블록으로 변환
+function convertToLectureBlocks(curriculums) {
+    return curriculums.map((curriculum, index) => {
+        // description을 문장 단위로 분할하여 상세 내용 배열 생성
+        let details = [];
+        
+        // 마침표, 느낌표, 물음표 등으로 문장 분할
+        const sentences = curriculum.description
+            .split(/[.!?]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        
+        if (sentences.length > 1) {
+            details = sentences.map(sentence => sentence + '.');
+        } else {
+            // 문장이 하나이거나 분할되지 않는 경우, 쉼표나 줄바꿈으로 분할 시도
+            const parts = curriculum.description
+                .split(/[,\n]/)
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            
+            if (parts.length > 1) {
+                details = parts;
+            } else {
+                // 분할할 수 없는 경우 전체를 하나의 항목으로
+                details = [curriculum.description];
+            }
+        }
+        
+        return {
+            blockId: index + 1,
+            title: curriculum.title,
+            duration: curriculum.duration,
+            durationText: (() => {
+                const hours = Math.floor(curriculum.duration / 60);
+                const minutes = curriculum.duration % 60;
+                if (hours > 0 && minutes > 0) {
+                    return `${hours}h ${minutes}m`;
+                } else if (hours > 0) {
+                    return `${hours}h`;
+                } else {
+                    return `${minutes}m`;
+                }
+            })(),
+            details: details,
+            originalCurriculum: curriculum // 원본 데이터 보존
+        };
+    });
+}
+
+// 기존 데이터 마이그레이션
+function migrateOldData() {
+    const savedData = JSON.parse(localStorage.getItem('savedCurriculums') || '[]');
+    let migrationCount = 0;
+    
+    const migratedData = savedData.map(data => {
+        // 이미 새로운 형식인지 확인
+        if (data.version === '2.0' || data.lectureBlocks) {
+            return data;
+        }
+        
+        // 구 형식 데이터를 새 형식으로 변환
+        migrationCount++;
+        const curriculumBlocks = convertToLectureBlocks(data.curriculums || []);
+        
+        return {
+            ...data,
+            lectureBlocks: curriculumBlocks,
+            version: '2.0',
+            migrated: true,
+            migrationDate: new Date().toISOString()
+        };
+    });
+    
+    if (migrationCount > 0) {
+        localStorage.setItem('savedCurriculums', JSON.stringify(migratedData));
+        console.log(`${migrationCount}개의 데이터가 새 형식으로 마이그레이션되었습니다.`);
+    }
+    
+    return migrationCount;
 }
 
 // 메시지 표시
