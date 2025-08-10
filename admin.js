@@ -56,6 +56,18 @@ function displayCurriculumList() {
         return;
     }
     
+    console.log('=== 관리자 페이지 커리큘럼 목록 표시 ===');
+    console.log('현재 필터:', currentFilter);
+    console.log('검색어:', searchQuery);
+    console.log('전체 카테고리 수:', Object.keys(curriculumCategories).length);
+    
+    // 각 카테고리별 커리큘럼 수 로그
+    Object.keys(curriculumCategories).forEach(categoryKey => {
+        const category = curriculumCategories[categoryKey];
+        const curriculumCount = (category.curriculums || []).length;
+        console.log(`${category.name} (${categoryKey}): ${curriculumCount}개`);
+    });
+    
     updateFilterCounts();
     
     // 전체 커리큘럼 개수 확인
@@ -76,24 +88,31 @@ function displayCurriculumList() {
     Object.keys(curriculumCategories).forEach(categoryKey => {
         const category = curriculumCategories[categoryKey];
         
+        console.log(`\n--- 카테고리 처리: ${category.name} (${categoryKey}) ---`);
+        
         // 현재 필터와 검색 조건에 맞는 커리큘럼들 필터링
         let filteredCurriculums = category.curriculums || [];
+        console.log(`원본 커리큘럼 수: ${filteredCurriculums.length}`);
         
         // 카테고리 필터 적용
         if (currentFilter !== 'all' && currentFilter !== categoryKey) {
+            console.log(`카테고리 필터로 인해 건너뜀 (현재 필터: ${currentFilter})`);
             return; // 이 카테고리는 건너뜀
         }
         
         // 검색 필터 적용
         if (searchQuery) {
+            const beforeSearchCount = filteredCurriculums.length;
             filteredCurriculums = filteredCurriculums.filter(curriculum =>
                 curriculum.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 curriculum.description.toLowerCase().includes(searchQuery.toLowerCase())
             );
+            console.log(`검색 후 커리큘럼 수: ${beforeSearchCount} → ${filteredCurriculums.length}`);
         }
         
         if (filteredCurriculums.length > 0) {
             hasVisibleContent = true;
+            console.log(`표시할 커리큘럼: ${filteredCurriculums.length}개`);
             
             // 카테고리 헤더 생성 (전체 보기일 때만)
             if (currentFilter === 'all') {
@@ -101,13 +120,40 @@ function displayCurriculumList() {
                 categoryHeader.className = 'category-header';
                 categoryHeader.innerHTML = `<h3>${category.name} (${filteredCurriculums.length}개)</h3>`;
                 listContainer.appendChild(categoryHeader);
+                console.log(`카테고리 헤더 추가: ${category.name}`);
             }
             
             // 해당 카테고리의 커리큘럼들 표시
-            filteredCurriculums.forEach(curriculum => {
-                const curriculumElement = createCurriculumElement(curriculum);
-                listContainer.appendChild(curriculumElement);
+            filteredCurriculums.forEach((curriculum, index) => {
+                console.log(`커리큘럼 ${index + 1}: ${curriculum.title} (${curriculum.duration}분)`);
+                
+                // createCurriculumElement 함수를 사용하여 커리큘럼 요소 생성
+                if (typeof createCurriculumElement === 'function') {
+                    const curriculumElement = createCurriculumElement(curriculum);
+                    listContainer.appendChild(curriculumElement);
+                    console.log(`커리큘럼 요소 생성 완료: ${curriculum.title}`);
+                } else {
+                    console.error('createCurriculumElement 함수가 정의되지 않았습니다.');
+                    // 임시로 간단한 요소 생성
+                    const simpleElement = document.createElement('div');
+                    simpleElement.className = 'curriculum-item-admin';
+                    simpleElement.innerHTML = `
+                        <div class="curriculum-details">
+                            <h3>${curriculum.title}</h3>
+                            <div class="duration">${curriculum.duration}분</div>
+                            <div class="description">${curriculum.description}</div>
+                        </div>
+                        <div class="curriculum-actions">
+                            <button onclick="editCurriculum('${curriculum.id}')" class="edit-btn">수정</button>
+                            <button onclick="deleteCurriculum('${curriculum.id}')" class="delete-btn">삭제</button>
+                        </div>
+                    `;
+                    listContainer.appendChild(simpleElement);
+                    console.log(`임시 커리큘럼 요소 생성: ${curriculum.title}`);
+                }
             });
+        } else {
+            console.log('필터링된 커리큘럼이 없습니다.');
         }
     });
     

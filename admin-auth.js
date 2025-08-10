@@ -100,12 +100,15 @@ function handleAuth(event) {
 
 // 관리자 페이지 초기화 (기존 코드)
 function initializeAdminPage() {
-    if (typeof loadCurriculumData === 'function') {
-        loadCurriculumData();
+    // 커리큘럼 데이터 로드 확인
+    if (typeof curriculumCategories === 'undefined') {
+        console.error('curriculumCategories가 정의되지 않았습니다. curriculum-data.js가 로드되었는지 확인하세요.');
+        return;
     }
-    if (typeof displayCurriculumList === 'function') {
-        displayCurriculumList();
-    }
+    
+    console.log('관리자 페이지 초기화 시작');
+    console.log('커리큘럼 카테고리 수:', Object.keys(curriculumCategories).length);
+    
     if (typeof setupEventListeners === 'function') {
         setupEventListeners();
     }
